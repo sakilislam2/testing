@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&family=Noto+Serif+Bengali:wght@100..900&display=swap" rel="stylesheet">
+    <title>Skins - Kiwi 1JOG</title>
+    
+    <meta property="og:title" content="Kiwi 1JOG Bus Skins - Free Download">
+    <meta property="og:description" content="Download the latest collection of 1JOG bus skins for Bus Simulator Bangladesh. Get your favorite skins for free!">
+    <meta property="og:image" content="https://example.com/simg/default_1jog_image.jpg"> <meta property="og:url" content="https://bsbdomg.vercel.app/skins/1jog.html">
+    <meta property="og:type" content="website">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Poppins, sans-serif;
+        }
+        body {
+            background-color: #f4f4f4;
+            padding: 10px;
+            font-family: Poppins, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center; 
+        }
+
+        /* ⭐️ NEW: Container for single view mode ⭐️ */
+        body.single-view .caption, 
+        body.single-view .search-container,
+        body.single-view .marquee {
+            display: none;
+        }
+        body.single-view .bskin-container {
+            flex-direction: column; /* Stack the one visible card */
+            align-items: center;
+            margin-top: 50px; /* Center the single card vertically a bit */
+        }
+        body.single-view .bskin-card {
+            width: 90% !important; /* Make the single card bigger/central */
+            max-width: 500px;
+        }
+        /* ⭐️ END NEW ⭐️ */
+
+        .caption {
+            text-align: center; 
+            width: 100%; 
+            max-width: 1200px; 
+            margin-bottom: 20px;
+        }
+        .caption h2 {
+            border-bottom: 2px solid #4CAF50;
+            display: inline-block;
+            padding-bottom: 0px;
+            margin-top: 20px;
+        }
+        .search-container input {
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            transition: border-color 0.3s;
+        }
+        .search-container input:focus {
+            border-color: #4CAF50;
+            outline: none;
+        }
+        .bskin-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 100%;
+            max-width: 1200px; 
+        }
+        .bskin-card {
+            background: #fff;
+            width: calc(25% - 20px); 
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .bskin-card img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        .bskin-info {
+            padding: 15px;
+        }
+        .bskin-info h2 {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        .bskin-info p {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 0px;
+        }
+        .author {
+            text-decoration: none;
+        }
+        .author p {
+            font-size: 12px;
+            color: #5f6ca1;
+            margin-bottom: 0px;
+        }
+        .free {
+            color: #e74c3c;
+            margin-top: 2px;
+            margin-bottom: 4px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .captcha-container {
+            display: inline-block;
+        }
+        .captcha-code {
+            font-weight: bold;
+            font-size: 16px;
+            color: #ff0000;
+            margin-bottom: -8px;
+        }
+        input {
+            padding: 8px;
+            margin: 8px 0;
+            font-family: Poppins;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 50%;
+            max-width: 200px;
+        }
+        button {
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .download-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 5px;
+        }
+        .download-links a {
+            padding: 8px 15px;
+            background-color: #28a745;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+        .download-links a.enabled {
+            pointer-events: auto;
+            opacity: 1;
+        }
+
+        .download-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .download-count {
+            font-size: 12px;
+            color: #333;
+            margin-top: 5px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        /* ⭐️ CSS FOR SHARE BUTTON ⭐️ */
+        .share-container {
+            margin-top: 15px; 
+            text-align: center;
+        }
+
+        .share-btn {
+            padding: 8px 15px;
+            background-color: #55acee; 
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: background-color 0.3s;
+        }
+
+        .share-btn:hover {
+            background-color: #4490c2;
+        }
+
+        .share-btn::before {
+            content: "🔗"; 
+            font-size: 16px;
+        }
+        /* ⭐️ END SHARE CSS ⭐️ */
+        
+        /* Responsive Adjustments */
+        @media (max-width: 992px) {
+            .bskin-card {
+                width: calc(33.33% - 20px); 
+            }
+        }
+
+        @media (max-width: 768px) {
+            .bskin-card {
+                width: calc(50% - 20px); 
+            }
+        }
+
+        @media (max-width: 480px) {
+            .bskin-card {
+                width: 90%; 
+            }
+        }
+
+    </style>
+
+
+</head>
+<body>
+    <marquee direction="left" style="font-family: 'Noto Serif Bengali', serif; font-size: 18px; color: #333; margin-bottom: 20px;" class="marquee">
+        সতর্কতাঃ নিম্নোক্ত সকল স্কিনসমূহ কোনোরূপ এডিট করা, নিজের নামে চালিয়ে দেওয়া কিংবা কোথাও আপলোড করা থেকে বিরত থাকুন। স্কিন সমূহের কোনোরূপ অপব্যবহার করলে তাদের ছবি/গ্রুপ/চ্যানেল কে সকলের সামনে ব্যঙ্গাত্মক করে প্রকাশ করা হবে এবং প্রয়োজনীয় ব্যবস্থা গ্রহণ করা হবে। আদেশক্রমেঃ অফিসিয়াল মাল্টিপ্লেয়ার গ্রুপ।     </marquee>
+    <div class="caption"><h2>KIWI 1JOG Skins</h2></div>
+        <div class="search-container" style="width:100%; max-width:1200px; margin-bottom: 20px; text-align:center;">
+        <input type="text" id="skin-search" placeholder=" Search skins..." style="width:80%; max-width:400px; padding:8px; font-size:16px;">
+    </div>
+    <div id="no-results" style="display:none; text-align:center; color:#888; margin-top: 20px;">
+        <div style="font-size: 40px; margin-bottom: 10px;">🔍</div>
+        <div style="font-size: 18px;">No skins found. Try another search.</div>
+    </div>
+
+
+    <div class="bskin-container">
+      
+        <div class="bskin-card" data-skin-id="OG1" data-image-url="simg/1jog/Himalay.jpg" data-title="Himalay Express">
+            <img src="simg/1jog/Himalay.jpg" alt="Himalay Express Image">
+            <div class="bskin-info">
+                <h2>Himalay Express</h2>
+                <p>Route: Dhaka - Laksham</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG1</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <div class="download-item">
+                    <a href="https://drive.google.com/uc?export=download&id=1W0VYTIgmhIYdD8OnlZiN6YDU93FpP2wp&confirm=t" class="download-btn" download onclick="handleDownload('Himalay Express', 'paint', this)">Paint</a>
+                    <div class="download-count paintCount"></div>
+                    </div>
+                    <div class="download-item">
+                    <a href="https://drive.google.com/uc?export=download&id=1W-lW5wSsD2f2hplo6fp1ULfigrga1WkJ&confirm=t" class="download-btn" download onclick="handleDownload('Himalay Express', 'glass', this)">Glass</a>
+                    <div class="download-count glassCount"></div>
+                    </div>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG1"
+                            data-title="Himalay Express Skin (OG1)"
+                            data-text="Download the FREE Himalay Express bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG2" data-image-url="simg/1jog/Himachal.jpg" data-title="Himachal">
+            <img src="simg/1jog/Himachal.jpg" alt="Himachal Image">
+            <div class="bskin-info">
+                <h2>Himachal</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG2</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1JUoH6uHrJHAvBaXLRNZWtgqyMrCP-iKU&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1JQJS0B1xh1loB8wHixlsvJ-nhXxR-1Fm&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG2"
+                            data-title="Himachal Skin (OG2)"
+                            data-text="Download the FREE Himachal bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG3" data-image-url="simg/1jog/Hazart Shahjalal (R.) Exp.jpg" data-title="Hazart Shahjalal (R.) Exp.">
+            <img src="simg/1jog/Hazart Shahjalal (R.) Exp.jpg" alt="Hazart Shahjalal (RA) Express Image">
+            <div class="bskin-info">
+                <h2>Hazart Shahjalal (R.) Exp.</h2>
+                <p>Route: Dhaka - Netrokona</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG3</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1Q4SVSFnMO0oOr-FP2BYXb8aSDy7Hs4kY&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1Pz29XrpbqrAzxaElciHJKPr0RrzSQzaW&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG3"
+                            data-title="Hazart Shahjalal (R.) Exp. Skin (OG3)"
+                            data-text="Download the FREE Hazart Shahjalal (R.) Exp. bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG4" data-image-url="simg/1jog/Shadhin Express.jpg" data-title="Shadhin Express">
+            <img src="simg/1jog/Shadhin Express.jpg" alt="Shadhin Express Image">
+            <div class="bskin-info">
+                <h2>Shadhin Express</h2>
+                <p>Route: Mirpur12 - Gulistan - Mawa</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG4</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=16_9CawEUsZ4ooRVQKpAfSAPaJWGM4vSm&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=16YxYfIS4VN9vJq7R5TrWbhrGoDtWBk0Y&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG4"
+                            data-title="Shadhin Express Skin (OG4)"
+                            data-text="Download the FREE Shadhin Express bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG5" data-image-url="simg/1jog/Shanti Paribahan.jpg" data-title="Shanti Paribahan">
+            <img src="simg/1jog/Shanti Paribahan.jpg" alt="Shanti Paribahan Image">
+            <div class="bskin-info">
+                <h2>Shanti Paribahan</h2>
+                <p>Route: Khagrachari</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG5</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1NxKL0QhPDG6Odfe2JH7uSqp7PQ_yjQ5A&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1O4lUxl-DS3LfsAmFnGFxs_iH3SQXM7dj&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG5"
+                            data-title="Shanti Paribahan Skin (OG5)"
+                            data-text="Download the FREE Shanti Paribahan bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG6" data-image-url="simg/1jog/Unique Service.jpg" data-title="Unique Service">
+            <img src="simg/1jog/Unique Service.jpg" alt="Unique Service Image">
+            <div class="bskin-info">
+                <h2>Unique Service</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG6</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1W6vMZo6L3_ZOrQrS2iTS-aDm6tgagj1B&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1W6V_Qr4eRL7dVNoTUiwEhvS3LPA5XceU&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG6"
+                            data-title="Unique Service Skin (OG6)"
+                            data-text="Download the FREE Unique Service bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG7" data-image-url="simg/1jog/Ilish Mawa Paribahan.jpg" data-title="Ilish - Mawa Paribahan">
+            <img src="simg/1jog/Ilish Mawa Paribahan.jpg" alt="Ilish Mawa Paribahan Image">
+            <div class="bskin-info">
+                <h2>Ilish - Mawa Paribahan</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG7</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1KfCmSt39ZGan_58g7aL1fc-CXqzmIORG&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1KbxOjqlTF7nZCzAuJupab_sX8J_f4CCu&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG7"
+                            data-title="Ilish - Mawa Paribahan Skin (OG7)"
+                            data-text="Download the FREE Ilish - Mawa Paribahan bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG8" data-image-url="simg/1jog/Agomony Express.jpg" data-title="Agomony Express">
+            <img src="simg/1jog/Agomony Express.jpg" alt="Agomony Express Image">
+            <div class="bskin-info">
+                <h2>Agomony Express</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG8</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1AfRkWQIjmS9b0irVPOle8Z881IHynwSU&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1Adtg-sq57EsU7WEAOdduHK6vNjIHcP-G&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG8"
+                            data-title="Agomony Express Skin (OG8)"
+                            data-text="Download the FREE Agomony Express bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG9" data-image-url="simg/1jog/Econo Service 1.jpg" data-title="Econo Service 1">
+            <img src="simg/1jog/Econo Service 1.jpg" alt="Econo Service 1 Image">
+            <div class="bskin-info">
+                <h2>Econo Service 1</h2>
+                <p>Route: Tongi - Dhaka - Raipur</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG9</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1LiaEViwpWZYU3c-OAu5bG4IhiE-qi1qB&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1MbhkbYSPHLqmzGu7ZdHCEmvF7Qlgfpgy&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG9"
+                            data-title="Econo Service 1 Skin (OG9)"
+                            data-text="Download the FREE Econo Service 1 bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG10" data-image-url="simg/1jog/Econo Service 2.jpg" data-title="Econo Service 2">
+            <img src="simg/1jog/Econo Service 2.jpg" alt="Econo Service 2 Image">
+            <div class="bskin-info">
+                <h2>Econo Service 2</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG10</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=15sJR5H3BpeWhYVmxeml8kOcFip2SYVFT&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=15rwfg6ECPpjWUxBZF5Y8p-V8ZUYt0bT1&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG10"
+                            data-title="Econo Service 2 Skin (OG10)"
+                            data-text="Download the FREE Econo Service 2 bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG11" data-image-url="simg/1jog/Prantik.jpg" data-title="Prantik">
+            <img src="simg/1jog/Prantik.jpg" alt="Prantik Image">
+            <div class="bskin-info">
+                <h2>Prantik</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG11</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1KrkJJ0OuhNPwN8h6kt37hmqVBKmhyWu0&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1KmkXyuHEmp14bKz6DLj5ggJyRvSt5Z1h&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG11"
+                            data-title="Prantik Skin (OG11)"
+                            data-text="Download the FREE Prantik bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG12" data-image-url="simg/1jog/Shahi.jpg" data-title="Shahi">
+            <img src="simg/1jog/Shahi.jpg" alt="Shahi Image">
+            <div class="bskin-info">
+                <h2>Shahi</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG12</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1DA5r_I2W8L1RCnbiS4ZA9aDDqRN19Czf&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1DDxRR4IyN_QUfUfqP64g10wNvztCxtai&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG12"
+                            data-title="Shahi Skin (OG12)"
+                            data-text="Download the FREE Shahi bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG13" data-image-url="simg/1jog/Shah Fateh Ali 1.jpg" data-title="Shah Fateh Ali 1">
+            <img src="simg/1jog/Shah Fateh Ali 1.jpg" alt="Shah Fateh Ali 1 Image">
+            <div class="bskin-info">
+                <h2>Shah Fateh Ali 1</h2>
+                <p>Route: Naogaon - Bogura - Dhaka - CTG</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG13</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1Rn2r-ffZepy2eSBSmXd-gkqHpyHKH2Zd&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1RYYcpe8z5zovvF4RCQ6B5wYIFGJz3Siv&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG13"
+                            data-title="Shah Fateh Ali 1 Skin (OG13)"
+                            data-text="Download the FREE Shah Fateh Ali 1 bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG14" data-image-url="simg/1jog/Shah Fateh Ali 2.jpg" data-title="Shah Fateh Ali 2">
+            <img src="simg/1jog/Shah Fateh Ali 2.jpg" alt="Shah Fateh Ali 2 Image">
+            <div class="bskin-info">
+                <h2>Shah Fateh Ali 2</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG14</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1U19pTsgxDZ0n5MVo-bkB5FHkWobjfx3m&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1RYYcpe8z5zovvF4RCQ6B5wYIFGJz3Siv&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG14"
+                            data-title="Shah Fateh Ali 2 Skin (OG14)"
+                            data-text="Download the FREE Shah Fateh Ali 2 bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG15" data-image-url="simg/1jog/Shah Fateh Ali 3.jpg" data-title="Shah Fateh Ali 3">
+            <img src="simg/1jog/Shah Fateh Ali 3.jpg" alt="Shah Fateh Ali 3 Image">
+            <div class="bskin-info">
+                <h2>Shah Fateh Ali 3</h2>
+                <p>Route: Any</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG15</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=1Tx4b0N9rTHYiy0oxctNsrk0abDymzf55&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1RYYcpe8z5zovvF4RCQ6B5wYIFGJz3Siv&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG15"
+                            data-title="Shah Fateh Ali 3 Skin (OG15)"
+                            data-text="Download the FREE Shah Fateh Ali 3 bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG16" data-image-url="simg/1jog/Pabna Express.jpg" data-title="Pabna Express">
+            <img src="simg/1jog/Pabna Express.jpg" alt="Pabna Express Image">
+            <div class="bskin-info">
+                <h2>Pabna Express</h2>
+                <p>Route: Pabna - Dhaka</p>
+                <a class="author" href="#"><p>Author: Md Rashel Babu Sr.</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG16</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <a href="https://drive.google.com/uc?export=download&id=19HJzSrdMSeDN-MS0a9eL6psD3bVPAuTC&confirm=t" class="download-btn" download>Paint</a>
+                    <a href="https://drive.google.com/uc?export=download&id=1E_eCYckEUBn10RmmYH0KxhObkDozp8km&confirm=t" class="download-btn" download>Glass</a>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG16"
+                            data-title="Pabna Express Skin (OG16)"
+                            data-text="Download the FREE Pabna Express bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+           <div class="bskin-card" data-skin-id="OG17" data-image-url="skins/simg/1jog/Alhamra isuzu.png" data-title="Alhamra">
+            <img src="simg/1jog/Alhamra isuzu.png" alt="Alhamra isuzu.png Image">
+            <div class="bskin-info">
+                <h2>Alhamra</h2>
+                <p>Chasis: ISUZU MT 134Q</p>
+                <p>Route: Dhaka - Gaibandha</p>
+                <a class="author" href="#"><p>Author: Sakil Islam</p></a>
+                <div class="price free">FREE</div>
+                <div class="captcha-container">
+                    <span class="captcha-code">OG17</span> <br>
+                    <input type="text" class="captchaInput" placeholder="Enter code">
+                    <button onclick="verifyCaptcha(this)">Verify</button>
+                </div>
+                <div class="download-links">
+                    <div class="download-item">
+                    <a href="Bus Skins/Sakil Islam/1JOG/Alhamra Paint By Sakil Islam.png" class="download-btn" download onclick="handleDownload('Alhamra', 'paint', this)">Paint</a>
+                    <div class="download-count paintCount"></div>
+                    </div>
+                    <div class="download-item">
+                    <a href="Bus Skins/Sakil Islam/1JOG/Alhamra Glass By Sakil Islam.png" class="download-btn" download onclick="handleDownload('Alhamra', 'glass', this)">Glass</a>
+                    <div class="download-count glassCount"></div>
+                    </div>
+                </div>
+                <div class="share-container">
+                    <button class="share-btn" 
+                            data-skin-id="OG17"
+                            data-title="Alhamra Skin (OG17)"
+                            data-text="Download the FREE Alhamra bus skin for Bus Simulator Bangladesh!">
+                        Share Link
+                    </button>
+                </div>
+                </div> 
+           </div>
+
+
+    </div>
+    <script>
+// =======================================================
+// CAPTCHA and DOWNLOAD HANDLING (Existing logic)
+// =======================================================
+function verifyCaptcha(button) {
+    const card = button.closest(".bskin-card");
+    const input = card.querySelector(".captchaInput").value;
+    const captchaText = card.querySelector(".captcha-code").innerText;
+    const downloadBtns = card.querySelectorAll(".download-btn");
+
+    if (input === captchaText) {
+        downloadBtns.forEach(btn => btn.classList.add("enabled"));
+    } else {
+        alert("Incorrect CAPTCHA! Try again.");
+    }
+}
+
+// Count & update Firebase
+function handleDownload(skinId, type, element) {
+    if (!element.classList.contains('enabled')) {
+        alert("Please complete the CAPTCHA first.");
+        event.preventDefault(); // block download if not verified
+        return;
+    }
+
+    // Assuming skinId is the H2 title (e.g., 'Himalay Express')
+    const card = element.closest(".bskin-card");
+    const name = card.querySelector('h2').innerText.trim(); 
+
+    const refPath = `1jog/${name}/${type}`;
+    const ref = db.ref(refPath);
+
+    // Transaction to safely increment
+    ref.transaction(count => (count || 0) + 1);
+}
+
+// Show download counts
+function loadAllCounts() {
+    const allCards = document.querySelectorAll('.bskin-card');
+
+    allCards.forEach(card => {
+        const name = card.querySelector('h2').innerText.trim(); 
+
+        const downloadItems = card.querySelectorAll('.download-item');
+
+        downloadItems.forEach(item => {
+            const isPaint = item.querySelector('a')?.innerText?.toLowerCase().includes('paint');
+            const countEl = item.querySelector('.download-count');
+
+            if (!countEl) return;
+
+            const refPath = `1jog/${name}/${isPaint ? 'paint' : 'glass'}`;
+
+            firebase.database().ref(refPath).on('value', snapshot => {
+                const count = snapshot.val() || 0;
+                countEl.innerText = `${isPaint ? 'Paint' : 'Glass'}: ${count}`;
+            });
+        });
+    });
+}
+
+
+// =======================================================
+// ⭐️ CORE CHANGES: SINGLE-CARD VIEW & META TAG UPDATE ⭐️
+// =======================================================
+
+// 1. Share button setup: Generates the specific URL
+function setupShareButtons() {
+    document.querySelectorAll('.share-btn').forEach(button => {
+        button.addEventListener('click', () => {
+            const skinId = button.getAttribute('data-skin-id'); // e.g., OG1
+            const skinTitle = button.getAttribute('data-title');
+            
+            // Note: window.location.origin is needed for absolute path in meta tags
+            const baseUrl = window.location.origin + window.location.pathname; 
+            const shareUrl = `${baseUrl}?skin=${skinId}`;
+            
+            if (navigator.share) {
+                // Native Web Share API (Mobile)
+                navigator.share({
+                    title: skinTitle,
+                    text: `Download the FREE ${skinTitle} bus skin for Bus Simulator Bangladesh!`,
+                    url: shareUrl 
+                })
+                .catch((error) => {
+                    // Fallback on cancel or error
+                    copyLinkFallback(skinTitle, shareUrl);
+                });
+            } else {
+                // Fallback for desktop
+                copyLinkFallback(skinTitle, shareUrl);
+            }
+        });
+    });
+}
+
+// 2. Fallback: Copies the unique link
+function copyLinkFallback(title, url) {
+    navigator.clipboard.writeText(url)
+        .then(() => {
+            alert(`Link copied to clipboard! Share this direct link: \n${url}`);
+        })
+        .catch(err => {
+            console.error('Could not copy text: ', err);
+            prompt("Copy this link to share the skin:", url);
+        });
+}
+
+// 3. ⭐️ NEW LOGIC: Filter Cards AND Update Meta Tags ⭐️
+function filterSkinsByUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetSkinId = urlParams.get('skin'); // Get the 'OG1', 'OG2', etc. value
+    const body = document.body;
+
+    if (targetSkinId) {
+        let foundCard = null;
+        const allCards = document.querySelectorAll('.bskin-card');
+        
+        allCards.forEach(card => {
+            const cardId = card.getAttribute('data-skin-id');
+            if (cardId === targetSkinId) {
+                card.style.display = ""; // Show the target card
+                foundCard = card;
+            } else {
+                card.style.display = "none"; // Hide all other cards
+            }
+        });
+
+        if (foundCard) {
+            // Apply single-view CSS class
+            body.classList.add('single-view');
+            
+            const cardTitle = foundCard.getAttribute('data-title');
+            const cardImageRelativeUrl = foundCard.getAttribute('data-image-url');
+            
+            // ⭐️ IMPORTANT: Get the absolute URL for sharing platforms ⭐️
+            const absoluteImageUrl = window.location.origin + window.location.pathname.replace('1jog.html', '') + cardImageRelativeUrl;
+            
+            const cardDescription = `Download the FREE ${cardTitle} bus skin for Bus Simulator Bangladesh!`;
+            const currentShareUrl = window.location.href; // The URL with the ?skin=ID
+
+            // ⭐️ Dynamically update the Open Graph (OG) Meta Tags ⭐️
+            // This is what changes the preview image/title on social media/chat apps.
+            updateMetaTag('og:title', cardTitle + ' - Kiwi 1JOG');
+            updateMetaTag('og:description', cardDescription);
+            updateMetaTag('og:image', absoluteImageUrl);
+            updateMetaTag('og:url', currentShareUrl);
+            
+            // Update the page title as well
+            document.title = cardTitle + ' - Kiwi 1JOG Skin';
+            
+        } else {
+             // If the parameter is there but invalid, show the whole page normally
+            body.classList.remove('single-view');
+            alert("The requested skin was not found.");
+            // Reset URL (optional, but cleaner)
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    } else {
+        // No skin parameter, show full gallery view (default meta tags will be used)
+        body.classList.remove('single-view');
+    }
+}
+
+// Helper function to update/create meta tags
+function updateMetaTag(property, content) {
+    let tag = document.querySelector(`meta[property='${property}']`);
+    if (!tag) {
+        tag = document.createElement('meta');
+        tag.setAttribute('property', property);
+        document.head.appendChild(tag);
+    }
+    tag.setAttribute('content', content);
+}
+
+
+// =======================================================
+// INITIALIZATION
+// =======================================================
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Check URL first to see if we need to filter/hide cards AND update meta tags
+    filterSkinsByUrl(); 
+    
+    // 2. Setup the share buttons with the new logic
+    setupShareButtons();
+    
+    // 3. Load download counts
+    loadAllCounts();
+
+    // 4. Search setup (Existing logic - will not work in single-view mode)
+    const searchInput = document.getElementById('skin-search');
+    const noResults = document.getElementById('no-results');
+
+    searchInput.addEventListener('input', function () {
+        const query = searchInput.value.toLowerCase().trim();
+        const cards = document.querySelectorAll('.bskin-card');
+        let matchCount = 0;
+
+        // If in single-view mode, do not allow searching
+        if (document.body.classList.contains('single-view')) {
+            searchInput.value = ''; // Clear input
+            return;
+        }
+
+        cards.forEach(card => {
+            const title = card.querySelector('h2')?.innerText.toLowerCase() || '';
+            
+            if (title.includes(query)) {
+                card.style.display = "";
+                matchCount++;
+            } else {
+                card.style.display = "none";
+            }
+        });
+
+        if (matchCount === 0) {
+            noResults.style.display = "block";
+        } else {
+            noResults.style.display = "none";
+        }
+    });
+});
+</script> 
+    
+
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script>
+  // Replace with your Firebase config
+  const firebaseConfig = {
+    apiKey: "AIzaSyByHEEWUxODtMkioDEXHz3Wze_t_a4wxZg",
+    authDomain: "bsbd-skin-downloads.firebaseapp.com",
+    databaseURL: "https://bsbd-skin-downloads-default-rtdb.firebaseio.com",
+    projectId: "bsbd-skin-downloads",
+    storageBucket: "bsbd-skin-downloads.firebasestorage.app",
+    messagingSenderId: "19620693297",
+    appId: "1:19620693297:web:b3242de89bebf6c2b6dc10"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+</script>
+
+
+</body>
+</html>
+
+
+
+
+
