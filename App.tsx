@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 
 // --- Types ---
-type View = 'home' | 'about' | 'skins' | 'leaderboard' | 'tournament' | 'trip' | 'admin' | 'external';
+type View = 'home' | 'about' | 'skins' | 'leaderboard' | 'tournament' | 'trip' | 'admin';
 
 interface BusModel {
   id: string;
@@ -27,13 +27,22 @@ interface LeaderboardEntry {
   rank: string;
   name: string;
   id: string;
-  trips: number;
+  trips: number | string;
 }
 
 interface TripSchedule {
   time: string;
   master: string;
   id: string;
+}
+
+interface StaffMember {
+  id: string;
+  name: string;
+  role: string;
+  imageUrl: string;
+  fbLink: string;
+  type: 'admin' | 'master';
 }
 
 interface NavItem {
@@ -65,16 +74,47 @@ const DEFAULT_SKINS: Skin[] = [
   },
 ];
 
+const DEFAULT_STAFF: StaffMember[] = [
+  { id: 'st1', name: 'Raju Ahmed', role: 'Admin, BSBDOMG', imageUrl: 'sdimg/RajuAhmed.jpg', fbLink: 'https://www.facebook.com/raju.refine', type: 'admin' },
+  { id: 'st2', name: 'Sakil Islam', role: '3:30 PM (BST)', imageUrl: 'sdimg/SAKIL_ISLAM.jpg', fbLink: 'https://www.facebook.com/Sakilislam02', type: 'master' },
+  { id: 'st3', name: 'Raiyan Nasim', role: '7:30 PM (BST)', imageUrl: 'sdimg/RaiyanB.jpg', fbLink: 'https://www.facebook.com/raiyan.nasim.2024', type: 'master' },
+  { id: 'st4', name: 'Imroz Ahmad Rafi', role: '9:15 PM (BST)', imageUrl: 'sdimg/Imroz.jpg', fbLink: 'https://www.facebook.com/imroz.rafi.9/', type: 'master' },
+  { id: 'st5', name: 'Hasibul Hasan Fuad', role: '10:30 PM (BST)', imageUrl: 'sdimg/DespicableFuad.jpg', fbLink: 'https://www.facebook.com/hasibulhasan.fuad/', type: 'master' },
+  { id: 'st6', name: 'Rahat Sahrif', role: '10:30 PM (BST)', imageUrl: 'sdimg/RAHAT.jpg', fbLink: 'https://www.facebook.com/rahat.khan.939269', type: 'master' },
+  { id: 'st7', name: 'Badhon Hossain', role: '12:00 AM (BST)', imageUrl: 'sdimg/Badhon117.jpg', fbLink: 'https://www.facebook.com/badhon.hossain.258225/', type: 'master' },
+  { id: 'st8', name: 'Raju Ahmed', role: '01:15 AM (BST)', imageUrl: 'sdimg/RajuAhmed.jpg', fbLink: 'https://www.facebook.com/raju.refine', type: 'master' },
+];
+
 const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
   { rank: '🥇 1', name: 'Kazi Shovo Ahmed Mahin', id: 'Shovo449', trips: 24 },
   { rank: '🥈 2', name: 'RidoyDn', id: 'RidoyDn', trips: 23 },
   { rank: '🥉 3', name: 'Abdullah Al Mayaz', id: 'Mayazz', trips: 17 },
+  { rank: '4', name: 'Md Farabi', id: 'Farabi132', trips: 16 },
+  { rank: '5', name: 'Nazmul Shohag', id: 'Busloverofsavar', trips: 15 },
+  { rank: '6', name: 'Nayim Opu', id: 'OPUzz', trips: 13 },
+  { rank: '7', name: 'SH Shamim', id: 'proSHAMIM', trips: 11 },
+  { rank: '8', name: 'Rafin Hasan', id: 'FancyRafin', trips: 10 },
+  { rank: '9', name: 'Hridoy H S', id: 'Hridoy', trips: 9 },
+  { rank: '10', name: 'Saif Uddin Al Hossain', id: 'SAiF', trips: 9 },
+];
+
+const DEFAULT_MASTER_LEADERBOARD: LeaderboardEntry[] = [
+  { rank: '🥇 1', name: 'Raiyan Nasim', id: 'RaiyanB', trips: 'N/A' },
+  { rank: '🥈 2', name: 'Hasibul Hasan Fuad', id: 'DespicableFuad', trips: 'N/A' },
+  { rank: '🥉 3', name: 'Badhon Hossain', id: 'Badhon117', trips: 'N/A' },
+  { rank: '4', name: 'Sakil Islam', id: 'SAKIL_ISLAM', trips: 'N/A' },
+  { rank: '5', name: 'Raju Ahmed', id: 'RajuAhmed', trips: 'N/A' },
+  { rank: '6', name: 'Imroz Ahmed Rafi', id: 'Imroz', trips: 'N/A' },
+  { rank: '7', name: 'RAHAT', id: 'RAHAT', trips: 'N/A' },
 ];
 
 const DEFAULT_TRIPS: TripSchedule[] = [
-  { time: '03:30 PM', master: 'Sakil', id: 'SAKIL_ISLAM' },
-  { time: '07:30 PM', master: 'Raiyan', id: 'RaiyanB' },
-  { time: '09:15 PM', master: 'Imroz', id: 'IMROZ' },
+  { time: '03:30 PM', master: 'শাকিল', id: 'SAKIL_ISLAM' },
+  { time: '07:30 PM', master: 'রাইয়ান', id: 'RaiyanB' },
+  { time: '09:15 PM', master: 'ইমরোজ', id: 'IMROZ' },
+  { time: '10:30 PM', master: 'ফুয়াদ', id: 'DespicableFuad' },
+  { time: '12:00 AM', master: 'বাধন', id: 'Badhon117' },
+  { time: '01:15 AM', master: 'রাজু', id: 'RajuAhmed' },
 ];
 
 const NAV_ITEMS: NavItem[] = [
@@ -90,7 +130,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<View>('home');
   const [selectedModel, setSelectedModel] = useState<BusModel | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [visitorCount, setVisitorCount] = useState(1248);
+  const [visitorCount, setVisitorCount] = useState(309);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
@@ -100,8 +140,10 @@ const App: React.FC = () => {
   const [busModels, setBusModels] = useState<BusModel[]>(() => JSON.parse(localStorage.getItem('bsbd_models') || JSON.stringify(DEFAULT_MODELS)));
   const [skins, setSkins] = useState<Skin[]>(() => JSON.parse(localStorage.getItem('bsbd_skins') || JSON.stringify(DEFAULT_SKINS)));
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => JSON.parse(localStorage.getItem('bsbd_leaderboard') || JSON.stringify(DEFAULT_LEADERBOARD)));
+  const [masterLeaderboard, setMasterLeaderboard] = useState<LeaderboardEntry[]>(() => JSON.parse(localStorage.getItem('bsbd_master_leaderboard') || JSON.stringify(DEFAULT_MASTER_LEADERBOARD)));
   const [trips, setTrips] = useState<TripSchedule[]>(() => JSON.parse(localStorage.getItem('bsbd_trips') || JSON.stringify(DEFAULT_TRIPS)));
-  const [historyText, setHistoryText] = useState(localStorage.getItem('bsbd_history') || "This group was created by BSBD OFFICIALS in 2021. Currently, 100+ members are participating regularly, and every day, 6 trip masters are hosting 6 trips.");
+  const [staff, setStaff] = useState<StaffMember[]>(() => JSON.parse(localStorage.getItem('bsbd_staff') || JSON.stringify(DEFAULT_STAFF)));
+  const [historyText, setHistoryText] = useState(localStorage.getItem('bsbd_history') || "This group was created by BSBD OFFICIALS in 2021. At that time, no one was like playing multiplayer except 6-7 members. Then the group name was ‘BSBD Multiplay'. After becoming the moderator of the BSBD Official Facebook group, Raju Ahmed changed the name of the messenger group to the “Bus Simulator Bangladesh Official Multiplayer Group.\" With the help of Raju Ahmed (Admin) and the trip masters, the group gradually started to grow up.");
 
   // --- Persistence ---
   useEffect(() => {
@@ -109,14 +151,25 @@ const App: React.FC = () => {
     localStorage.setItem('bsbd_models', JSON.stringify(busModels));
     localStorage.setItem('bsbd_skins', JSON.stringify(skins));
     localStorage.setItem('bsbd_leaderboard', JSON.stringify(leaderboard));
+    localStorage.setItem('bsbd_master_leaderboard', JSON.stringify(masterLeaderboard));
     localStorage.setItem('bsbd_trips', JSON.stringify(trips));
+    localStorage.setItem('bsbd_staff', JSON.stringify(staff));
     localStorage.setItem('bsbd_history', historyText);
-  }, [marqueeText, busModels, skins, leaderboard, trips, historyText]);
+  }, [marqueeText, busModels, skins, leaderboard, masterLeaderboard, trips, staff, historyText]);
 
+  // --- Visitor Count Logic ---
   useEffect(() => {
-    const count = parseInt(localStorage.getItem('visitor_count') || '1248');
-    setVisitorCount(count + 1);
-    localStorage.setItem('visitor_count', (count + 1).toString());
+    const storedTotal = parseInt(localStorage.getItem('bsbd_visitor_total') || '309');
+    const sessionCounted = sessionStorage.getItem('bsbd_session_counted');
+    
+    if (!sessionCounted) {
+      const newTotal = storedTotal + 1;
+      localStorage.setItem('bsbd_visitor_total', newTotal.toString());
+      sessionStorage.setItem('bsbd_session_counted', 'true');
+      setVisitorCount(newTotal);
+    } else {
+      setVisitorCount(storedTotal);
+    }
   }, []);
 
   const handleLoginSubmit = (e: React.FormEvent) => {
@@ -148,19 +201,21 @@ const App: React.FC = () => {
         ) : (
           <BusModelSelection models={busModels} onSelect={setSelectedModel} />
         );
-      case 'leaderboard': return <LeaderboardSection data={leaderboard} />;
+      case 'leaderboard': return <LeaderboardSection data={leaderboard} masterData={masterLeaderboard} />;
       case 'trip': return <TripRulesSection schedules={trips} />;
       case 'tournament': return <TournamentSection />;
-      case 'about': return <AboutUsSection history={historyText} />;
+      case 'about': return <AboutUsSection history={historyText} staff={staff} />;
       case 'admin': 
         return isLoggedIn ? (
           <AdminDashboard 
-            marquee={marqueeText} setMarquee={setMarqueeText}
             busModels={busModels} setBusModels={setBusModels}
             skins={skins} setSkins={setSkins}
             leaderboard={leaderboard} setLeaderboard={setLeaderboard}
+            masterLeaderboard={masterLeaderboard} setMasterLeaderboard={setMasterLeaderboard}
             trips={trips} setTrips={setTrips}
+            staff={staff} setStaff={setStaff}
             history={historyText} setHistory={setHistoryText}
+            marquee={marqueeText} setMarquee={setMarqueeText}
             onLogout={() => { setIsLoggedIn(false); setView('home'); }}
           />
         ) : (
@@ -446,17 +501,19 @@ const Footer: React.FC<{ visitorCount: number }> = ({ visitorCount }) => (
 // --- Admin Dashboard ---
 
 interface AdminProps {
-  marquee: string; setMarquee: (s: string) => void;
   busModels: BusModel[]; setBusModels: (m: BusModel[]) => void;
   skins: Skin[]; setSkins: (s: Skin[]) => void;
   leaderboard: LeaderboardEntry[]; setLeaderboard: (l: LeaderboardEntry[]) => void;
+  masterLeaderboard: LeaderboardEntry[]; setMasterLeaderboard: (l: LeaderboardEntry[]) => void;
   trips: TripSchedule[]; setTrips: (t: TripSchedule[]) => void;
+  staff: StaffMember[]; setStaff: (s: StaffMember[]) => void;
   history: string; setHistory: (h: string) => void;
+  marquee: string; setMarquee: (m: string) => void;
   onLogout: () => void;
 }
 
-const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, setBusModels, skins, setSkins, leaderboard, setLeaderboard, trips, setTrips, history, setHistory, onLogout }) => {
-  const [activeTab, setActiveTab] = useState<'notice' | 'models' | 'skins' | 'leaderboard' | 'trips' | 'about'>('notice');
+const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, setSkins, leaderboard, setLeaderboard, masterLeaderboard, setMasterLeaderboard, trips, setTrips, staff, setStaff, history, setHistory, marquee, setMarquee, onLogout }) => {
+  const [activeTab, setActiveTab] = useState<'models' | 'skins' | 'leaderboard' | 'trips' | 'staff' | 'about'>('models');
   
   // States for new entries
   const [newModel, setNewModel] = useState<BusModel>({ id: '', name: '', imageUrl: '' });
@@ -464,6 +521,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, 
     id: '', modelId: '', title: '', author: '', route: '', chassis: '', 
     imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
   });
+  const [newStaff, setNewStaff] = useState<StaffMember>({ id: '', name: '', role: '', imageUrl: '', fbLink: '', type: 'master' });
 
   const addModel = () => {
     if(!newModel.name) return;
@@ -480,6 +538,12 @@ const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, 
     });
   };
 
+  const addStaff = () => {
+    if(!newStaff.name) return;
+    setStaff([...staff, { ...newStaff, id: 'st' + Date.now() }]);
+    setNewStaff({ id: '', name: '', role: '', imageUrl: '', fbLink: '', type: 'master' });
+  };
+
   return (
     <div className="space-y-10 animate-in fade-in duration-500 pb-20">
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-white/10 pb-10">
@@ -491,7 +555,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, 
       </div>
 
       <div className="flex flex-wrap gap-3">
-        {['notice', 'models', 'skins', 'leaderboard', 'trips', 'about'].map(tab => (
+        {['models', 'skins', 'leaderboard', 'trips', 'staff', 'about'].map(tab => (
           <button 
             key={tab} onClick={() => setActiveTab(tab as any)}
             className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/20' : 'glass text-gray-400 hover:bg-white/5'}`}
@@ -502,16 +566,6 @@ const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, 
       </div>
 
       <div className="glass p-10 lg:p-14 rounded-[3.5rem] border border-white/10 min-h-[600px] shadow-2xl">
-        {activeTab === 'notice' && (
-          <div className="space-y-8 max-w-3xl">
-            <h3 className="text-2xl font-bold">Marquee Announcement</h3>
-            <textarea 
-              className="w-full h-48 glass bg-white/5 border-white/10 rounded-[2rem] p-8 focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg font-bengali"
-              value={marquee} onChange={(e) => setMarquee(e.target.value)}
-            />
-          </div>
-        )}
-
         {activeTab === 'models' && (
           <div className="space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 glass border-white/5 rounded-[2.5rem]">
@@ -530,7 +584,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, 
               {busModels.map(m => (
                 <div key={m.id} className="flex items-center justify-between p-6 glass border-white/5 rounded-3xl group">
                   <div className="flex items-center gap-4">
-                    <img src={m.imageUrl} className="w-12 h-12 rounded-xl object-cover" />
+                    <img src={m.imageUrl} className="w-12 h-12 rounded-xl object-cover" onError={(e) => (e.currentTarget.src = 'https://placehold.co/100x100?text=Bus')} />
                     <p className="font-bold">{m.name}</p>
                   </div>
                   <button onClick={() => setBusModels(busModels.filter(x => x.id !== m.id))} className="text-red-500 opacity-0 group-hover:opacity-100 transition-all"><i className="fas fa-trash"></i></button>
@@ -577,7 +631,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, 
               {skins.map(s => (
                 <div key={s.id} className="flex items-center justify-between p-6 glass border-white/5 rounded-3xl group">
                   <div className="flex items-center gap-6">
-                    <img src={s.imageUrl} className="w-16 h-10 object-cover rounded-lg" />
+                    <img src={s.imageUrl} className="w-16 h-10 object-cover rounded-lg" onError={(e) => (e.currentTarget.src = 'https://placehold.co/100x60?text=Skin')} />
                     <div>
                       <p className="font-bold">{s.title}</p>
                       <p className="text-xs text-gray-500">{busModels.find(m => m.id === s.modelId)?.name || 'Unknown'}</p>
@@ -591,22 +645,61 @@ const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, 
         )}
 
         {activeTab === 'leaderboard' && (
-          <div className="space-y-8">
-            <div className="flex items-center justify-between"><h3 className="text-2xl font-bold">Roster Ranking</h3><button onClick={() => setLeaderboard([...leaderboard, { rank: '?', name: 'New Driver', id: 'D'+Date.now(), trips: 0 }])} className="px-6 py-2 bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all">Add Driver</button></div>
-            <div className="glass rounded-[2rem] overflow-hidden border border-white/5">
-              <table className="w-full text-left">
-                <thead className="bg-white/5"><tr><th className="p-6 text-[10px] font-black uppercase text-gray-500">Rank</th><th className="p-6 text-[10px] font-black uppercase text-gray-500">Driver</th><th className="p-6 text-center text-[10px] font-black uppercase text-gray-500">Trips</th><th className="p-6"></th></tr></thead>
-                <tbody className="divide-y divide-white/5">
-                  {leaderboard.map(p => (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
-                      <td className="p-6"><input className="bg-transparent font-black w-16 focus:text-emerald-500 outline-none" value={p.rank} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, rank: e.target.value} : x))} /></td>
-                      <td className="p-6"><input className="bg-transparent block font-bold text-lg focus:text-emerald-500 outline-none w-full" value={p.name} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, name: e.target.value} : x))} /><span className="text-[10px] text-gray-600 font-mono">{p.id}</span></td>
-                      <td className="p-6 text-center"><input type="number" className="glass bg-white/5 w-24 p-3 text-center rounded-xl font-bold focus:ring-1 focus:ring-emerald-500 outline-none" value={p.trips} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, trips: parseInt(e.target.value)} : x))} /></td>
-                      <td className="p-6"><button onClick={() => setLeaderboard(leaderboard.filter(x => x.id !== p.id))} className="text-red-500/30 hover:text-red-500"><i className="fas fa-times-circle"></i></button></td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="space-y-16">
+            {/* Drivers Section */}
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-bold">Driver Ranking</h3>
+                <button 
+                  onClick={() => setLeaderboard([...leaderboard, { rank: '?', name: 'New Driver', id: 'D'+Date.now(), trips: 0 }])} 
+                  className="px-6 py-2 bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all"
+                >
+                  Add Driver
+                </button>
+              </div>
+              <div className="glass rounded-[2rem] overflow-hidden border border-white/5">
+                <table className="w-full text-left">
+                  <thead className="bg-white/5"><tr><th className="p-6 text-[10px] font-black uppercase text-gray-500">Rank</th><th className="p-6 text-[10px] font-black uppercase text-gray-500">Member</th><th className="p-6 text-center text-[10px] font-black uppercase text-gray-500">Trips</th><th className="p-6"></th></tr></thead>
+                  <tbody className="divide-y divide-white/5">
+                    {leaderboard.map(p => (
+                      <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-6"><input className="bg-transparent font-black w-16 focus:text-emerald-500 outline-none" value={p.rank} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, rank: e.target.value} : x))} /></td>
+                        <td className="p-6"><input className="bg-transparent block font-bold text-lg focus:text-emerald-500 outline-none w-full" value={p.name} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, name: e.target.value} : x))} /><span className="text-[10px] text-gray-600 font-mono">{p.id}</span></td>
+                        <td className="p-6 text-center"><input className="glass bg-white/5 w-24 p-3 text-center rounded-xl font-bold focus:ring-1 focus:ring-emerald-500 outline-none" value={p.trips} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, trips: e.target.value} : x))} /></td>
+                        <td className="p-6"><button onClick={() => setLeaderboard(leaderboard.filter(x => x.id !== p.id))} className="text-red-500/30 hover:text-red-500"><i className="fas fa-times-circle"></i></button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Masters Section */}
+            <div className="space-y-8 pt-8 border-t border-white/10">
+              <div className="flex items-center justify-between">
+                <h3 className="text-2xl font-bold">Trip Masters Ranking</h3>
+                <button 
+                  onClick={() => setMasterLeaderboard([...masterLeaderboard, { rank: '?', name: 'New Master', id: 'M'+Date.now(), trips: 'N/A' }])} 
+                  className="px-6 py-2 bg-orange-500 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-orange-500/20 hover:scale-105 transition-all"
+                >
+                  Add Master
+                </button>
+              </div>
+              <div className="glass rounded-[2rem] overflow-hidden border border-white/5">
+                <table className="w-full text-left">
+                  <thead className="bg-white/5"><tr><th className="p-6 text-[10px] font-black uppercase text-gray-500">Rank</th><th className="p-6 text-[10px] font-black uppercase text-gray-500">Member</th><th className="p-6 text-center text-[10px] font-black uppercase text-gray-500">Trips</th><th className="p-6"></th></tr></thead>
+                  <tbody className="divide-y divide-white/5">
+                    {masterLeaderboard.map(p => (
+                      <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                        <td className="p-6"><input className="bg-transparent font-black w-16 focus:text-emerald-500 outline-none" value={p.rank} onChange={e => setMasterLeaderboard(masterLeaderboard.map(x => x.id === p.id ? {...x, rank: e.target.value} : x))} /></td>
+                        <td className="p-6"><input className="bg-transparent block font-bold text-lg focus:text-emerald-500 outline-none w-full" value={p.name} onChange={e => setMasterLeaderboard(masterLeaderboard.map(x => x.id === p.id ? {...x, name: e.target.value} : x))} /><span className="text-[10px] text-gray-600 font-mono">{p.id}</span></td>
+                        <td className="p-6 text-center"><input className="glass bg-white/5 w-24 p-3 text-center rounded-xl font-bold focus:ring-1 focus:ring-emerald-500 outline-none" value={p.trips} onChange={e => setMasterLeaderboard(masterLeaderboard.map(x => x.id === p.id ? {...x, trips: e.target.value} : x))} /></td>
+                        <td className="p-6"><button onClick={() => setMasterLeaderboard(masterLeaderboard.filter(x => x.id !== p.id))} className="text-red-500/30 hover:text-red-500"><i className="fas fa-times-circle"></i></button></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}
@@ -626,8 +719,63 @@ const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, 
           </div>
         )}
 
+        {activeTab === 'staff' && (
+          <div className="space-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8 glass border-white/5 rounded-[2.5rem]">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Full Name</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="Raju Ahmed" value={newStaff.name} onChange={e => setNewStaff({...newStaff, name: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Role/Time</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="Admin / 3:30 PM" value={newStaff.role} onChange={e => setNewStaff({...newStaff, role: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Type</label>
+                <select className="w-full glass bg-white/5 p-4 rounded-2xl" value={newStaff.type} onChange={e => setNewStaff({...newStaff, type: e.target.value as any})}>
+                  <option value="admin">Admin</option>
+                  <option value="master">Trip Master</option>
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Image URL</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="sdimg/photo.jpg" value={newStaff.imageUrl} onChange={e => setNewStaff({...newStaff, imageUrl: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">FB Profile Link</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="https://facebook.com/..." value={newStaff.fbLink} onChange={e => setNewStaff({...newStaff, fbLink: e.target.value})} />
+              </div>
+              <button onClick={addStaff} className="lg:col-span-3 bg-emerald-500 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm shadow-xl mt-4">Add Staff Member</button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {staff.map(s => (
+                <div key={s.id} className="flex items-center justify-between p-6 glass border-white/5 rounded-3xl group">
+                  <div className="flex items-center gap-4">
+                    <img src={s.imageUrl} className="w-12 h-12 rounded-full object-cover" onError={(e) => (e.currentTarget.src = 'https://placehold.co/100x100?text=Profile')} />
+                    <div>
+                      <p className="font-bold text-sm">{s.name}</p>
+                      <p className="text-[10px] text-gray-500 uppercase">{s.type}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setStaff(staff.filter(x => x.id !== s.id))} className="text-red-500 opacity-0 group-hover:opacity-100 transition-all"><i className="fas fa-trash-alt"></i></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {activeTab === 'about' && (
-          <div className="space-y-8 max-w-4xl"><h3 className="text-2xl font-bold">Historical Narrative</h3><textarea className="w-full h-80 glass bg-white/5 border-white/10 rounded-[2.5rem] p-10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg leading-relaxed text-gray-300 font-light" value={history} onChange={(e) => setHistory(e.target.value)} placeholder="Compose the community story..." /></div>
+          <div className="space-y-10 max-w-4xl">
+            <div className="space-y-4">
+               <h3 className="text-2xl font-bold">Marquee Announcement</h3>
+               <input className="w-full glass bg-white/5 border-white/10 rounded-2xl p-4 focus:ring-2 focus:ring-emerald-500 outline-none" value={marquee} onChange={(e) => setMarquee(e.target.value)} />
+            </div>
+            <div className="space-y-4">
+               <h3 className="text-2xl font-bold">Historical Narrative</h3>
+               <textarea className="w-full h-80 glass bg-white/5 border-white/10 rounded-[2.5rem] p-10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg leading-relaxed text-gray-300 font-light" value={history} onChange={(e) => setHistory(e.target.value)} placeholder="Compose the community story..." />
+            </div>
+          </div>
         )}
       </div>
     </div>
@@ -674,8 +822,7 @@ const HomeSection: React.FC<{ onNavigate: (item: Partial<NavItem>) => void }> = 
         alt="BSBD Hero"
         className="w-full h-[400px] lg:h-[650px] object-cover group-hover:scale-105 transition-transform duration-1000"
         onError={(e) => {
-          // Fallback if image path is not available during preview
-          (e.target as HTMLImageElement).src = "images/home-img.jp";
+          (e.target as HTMLImageElement).src = "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=2000";
         }}
       />
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
@@ -706,59 +853,124 @@ const HomeSection: React.FC<{ onNavigate: (item: Partial<NavItem>) => void }> = 
   </div>
 );
 
-const LeaderboardSection: React.FC<{ data: LeaderboardEntry[] }> = ({ data }) => (
-  <div className="space-y-12 animate-in fade-in duration-700">
-    <div className="text-center space-y-3">
-      <h2 className="text-5xl font-black uppercase tracking-tighter">Leaderboard</h2>
-      <p className="text-gray-500 font-medium">Monthly performance ranking for active members</p>
-    </div>
-    <div className="max-w-4xl mx-auto glass rounded-[3.5rem] overflow-hidden border border-white/5 shadow-2xl">
-      <table className="w-full text-left">
-        <thead className="bg-white/5 border-b border-white/5">
-          <tr>
-            <th className="px-10 py-6 text-[10px] font-black uppercase text-gray-500 tracking-widest">Rank</th>
-            <th className="px-10 py-6 text-[10px] font-black uppercase text-gray-500 tracking-widest">Player Profile</th>
-            <th className="px-10 py-6 text-[10px] font-black uppercase text-gray-500 tracking-widest text-center">Trips</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-white/5">
-          {data.map(p => (
-            <tr key={p.id} className="hover:bg-white/5 transition-colors group">
-              <td className="px-10 py-8 font-black text-2xl text-emerald-500/50 group-hover:text-emerald-500 transition-colors">{p.rank}</td>
-              <td className="px-10 py-8">
-                <div className="font-bold text-lg">{p.name}</div>
-                <div className="text-xs text-gray-500 font-mono mt-1">{p.id}</div>
-              </td>
-              <td className="px-10 py-8 text-center">
-                <span className="inline-block px-5 py-2 glass bg-emerald-500/5 rounded-xl font-mono text-lg font-bold text-emerald-400">{p.trips}</span>
-              </td>
+const LeaderboardSection: React.FC<{ data: LeaderboardEntry[], masterData: LeaderboardEntry[] }> = ({ data, masterData }) => {
+  const renderTable = (list: LeaderboardEntry[], title?: string) => (
+    <div className="space-y-8">
+      {title && <div className="text-center py-6"><h3 className="text-4xl font-black uppercase tracking-tighter border-b-2 border-emerald-500 inline-block pb-2">{title}</h3></div>}
+      <div className="glass rounded-[3.5rem] overflow-hidden border border-white/5 shadow-2xl">
+        <table className="w-full text-left">
+          <thead className="bg-white/5 border-b border-white/5">
+            <tr>
+              <th className="px-10 py-6 text-[10px] font-black uppercase text-gray-500 tracking-widest">SL</th>
+              <th className="px-10 py-6 text-[10px] font-black uppercase text-gray-500 tracking-widest">Player Name</th>
+              <th className="px-10 py-6 text-[10px] font-black uppercase text-gray-500 tracking-widest">Game ID</th>
+              <th className="px-10 py-6 text-[10px] font-black uppercase text-gray-500 tracking-widest text-center">Total Trips</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody className="divide-y divide-white/5">
+            {list.map((p, idx) => {
+              const isFirst = idx === 0;
+              const isSecond = idx === 1;
+              const isThird = idx === 2;
+              
+              let rowBg = "hover:bg-white/5";
+              if (isFirst) rowBg = "bg-amber-500/10 hover:bg-amber-500/20";
+              if (isSecond) rowBg = "bg-slate-400/10 hover:bg-slate-400/20";
+              if (isThird) rowBg = "bg-orange-600/10 hover:bg-orange-600/20";
+
+              return (
+                <tr key={p.id} className={`${rowBg} transition-colors group`}>
+                  <td className={`px-10 py-8 font-black text-2xl ${isFirst ? 'text-amber-400' : isSecond ? 'text-slate-300' : isThird ? 'text-orange-500' : 'text-emerald-500/50'}`}>{p.rank}</td>
+                  <td className="px-10 py-8"><div className="font-bold text-lg">{p.name}</div></td>
+                  <td className="px-10 py-8"><div className="text-xs text-gray-500 font-mono">{p.id}</div></td>
+                  <td className="px-10 py-8 text-center">
+                    <span className={`inline-block px-5 py-2 rounded-xl font-mono text-lg font-bold ${typeof p.trips === 'number' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-white/5 text-gray-600'}`}>
+                      {p.trips}
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
-  </div>
-);
+  );
+
+  return (
+    <div className="space-y-16 animate-in fade-in duration-700">
+      <div className="text-center space-y-3">
+        <h2 className="text-5xl font-black uppercase tracking-tighter">Trip Leaderboard</h2>
+        <p className="text-gray-400 font-medium">🏅 JULY'25 Leaderboard based on <span className="text-white font-bold">monthly</span> total attendance in the trip at BSBDOMG.</p>
+      </div>
+
+      <div className="max-w-5xl mx-auto space-y-24">
+        {renderTable(data)}
+        {renderTable(masterData, "For Trip Masters")}
+        
+        <div className="space-y-4 pt-10 border-t border-white/5">
+          <p className="text-gray-400 text-sm font-medium">1) Leaderboard updates every week.</p>
+          <p className="text-gray-400 text-sm font-medium">2) Update: <span className="text-emerald-400">01.07.25 - 08.07.25</span> | Avg. 86.47%</p>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 const TripRulesSection: React.FC<{ schedules: TripSchedule[] }> = ({ schedules }) => (
-  <div className="space-y-12 animate-in fade-in duration-700">
-    <div className="text-center space-y-3">
-      <h2 className="text-5xl font-black uppercase tracking-tighter">Trip Schedule</h2>
-      <p className="text-emerald-500 font-bengali text-lg">অফিসিয়াল মাল্টিপ্লেয়ার ট্রিপ রুলস ও সময়সূচী</p>
+  <div className="space-y-20 animate-in fade-in duration-700">
+    <div className="text-center space-y-4">
+      <h1 className="text-3xl lg:text-4xl font-black font-bengali text-white uppercase tracking-tighter">বাস সিমুলেটর বাংলাদেশ</h1>
+      <p className="text-emerald-500 font-bengali text-xl lg:text-2xl">অফিসিয়াল মাল্টিপ্লেয়ার ট্রিপ রুলস ও সময়সূচী</p>
+      <div className="w-24 h-1.5 bg-emerald-500 mx-auto rounded-full mt-4"></div>
     </div>
+
+    {/* Schedule Grid */}
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
       {schedules.map(t => (
-        <div key={t.id} className="glass p-12 rounded-[3.5rem] text-center border border-white/5 hover:border-emerald-500/30 transition-all duration-500 group">
-          <div className="w-20 h-20 rounded-[2rem] bg-emerald-500/10 flex items-center justify-center text-emerald-500 mx-auto mb-8 group-hover:scale-110 transition-transform">
-            <i className="fas fa-clock text-3xl"></i>
+        <div key={t.id} className="glass p-10 rounded-[3rem] text-center border border-white/5 hover:border-emerald-500/30 transition-all duration-500 group relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500/20 group-hover:bg-emerald-500 transition-colors"></div>
+          <div className="w-16 h-16 rounded-[1.5rem] bg-emerald-500/10 flex items-center justify-center text-emerald-500 mx-auto mb-6 group-hover:scale-110 transition-transform">
+            <i className="fas fa-clock text-2xl"></i>
           </div>
-          <p className="text-4xl font-black mb-2">{t.time}</p>
+          <p className="text-4xl font-black mb-3 text-white">{t.time}</p>
           <div className="space-y-1">
-            <p className="text-[10px] text-gray-400 uppercase font-black tracking-[0.2em]">{t.master}</p>
-            <p className="text-[10px] text-gray-600 font-mono italic">{t.id}</p>
+            <p className="text-lg font-bold font-bengali text-gray-200">{t.master}</p>
+            <p className="text-[10px] text-gray-500 font-mono uppercase tracking-widest">{t.id}</p>
           </div>
         </div>
       ))}
+    </div>
+
+    {/* Rules Section */}
+    <div className="max-w-5xl mx-auto space-y-10">
+      <div className="inline-flex items-center gap-4 bg-emerald-500/10 px-8 py-4 rounded-3xl border border-emerald-500/20">
+        <i className="fas fa-shield-alt text-emerald-500 text-2xl"></i>
+        <h2 className="text-3xl font-black font-bengali text-emerald-400">ট্রিপ চলাকালীন রুলস</h2>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4">
+        {[
+          "ট্রিপ মাস্টারের কথামতো চলতে হবে। ট্রিপ মাস্টার কি বলে সেদিকে লক্ষ্য রাখতে হবে।",
+          "দুর্ঘটনা এড়াতে ওভারটেক কিংবা লেন চেঞ্জ করার সময় ইন্ডিকেটর লাইট ব্যবহার ও লুকিং গ্লাস দেখে করতে হবে। যাতে অন্য প্লেয়ার কোনোরকম চাপ না খায়।",
+          "অফিসিয়াল ট্রিপ এবং স্পেশাল ট্রিপে বাধ্যতামূলক বাস স্কিন সেট করে ট্রিপে জয়েন করতে হবে।",
+          "ট্রিপের মধ্যে জরুরী কারণ ছাড়া অতিরিক্ত মেসেজ করা যাবে না।",
+          "ট্রিপের ভিডিও করার সময় ট্রিপ মাস্টারের নির্দেশনা মেনে চলবেন।",
+          "ট্রিপের মধ্যে বিনা কারণে/অযথা হর্ণ দিবেন না। ট্রিপের মধ্যে চাপাচাপি সম্পূর্ণ নিষিদ্ধ।",
+          "অফিসিয়াল ট্রিপের আগে থেকে ট্রিপ শেষ না হওয়া পর্যন্ত ট্রিপ মাস্টার ব্যতীত অন্য কেউ হোস্ট করতে পারবেন না।"
+        ].map((rule, idx) => (
+          <div key={idx} className="glass p-6 rounded-2xl border-l-4 border-emerald-500 flex items-start gap-6 group hover:bg-white/5 transition-all">
+            <span className="w-10 h-10 shrink-0 bg-emerald-500/10 rounded-xl flex items-center justify-center font-bold text-emerald-500">{idx + 1}</span>
+            <p className="font-bengali text-lg lg:text-xl text-gray-300 leading-relaxed py-1">{rule}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Warning/Footer Note */}
+      <div className="glass p-10 rounded-[3rem] border border-red-500/20 bg-red-500/5 text-center space-y-4">
+        <p className="font-bengali text-xl text-red-400 font-bold">** বি: দ্র: রুলস অমান্য করলে এডমিন প্যানেল যথাযথ ব্যবস্থা নিবেন।</p>
+        <p className="font-bengali text-lg text-gray-400">ধন্যবাদান্তে: বিএসবিডি অফিসিয়াল মাল্টিপ্লেয়ার গ্রুপ (এডমিন প্যানেল)</p>
+      </div>
     </div>
   </div>
 );
@@ -775,21 +987,65 @@ const TournamentSection: React.FC = () => (
   </div>
 );
 
-const AboutUsSection: React.FC<{ history: string }> = ({ history }) => (
-  <div className="space-y-12 animate-in fade-in duration-700">
-    <div className="text-center space-y-4">
-      <h2 className="text-5xl font-black uppercase tracking-tighter">About Us</h2>
-      <div className="w-24 h-2 bg-emerald-500 mx-auto rounded-full"></div>
-    </div>
-    <div className="glass p-12 lg:p-20 rounded-[4rem] border border-white/5 shadow-2xl relative overflow-hidden">
-      <div className="absolute -right-20 -bottom-20 opacity-5">
-        <i className="fas fa-history text-[20rem]"></i>
+const AboutUsSection: React.FC<{ history: string, staff: StaffMember[] }> = ({ history, staff }) => {
+  const admins = staff.filter(s => s.type === 'admin');
+  const masters = staff.filter(s => s.type === 'master');
+
+  return (
+    <div className="space-y-20 animate-in fade-in duration-700">
+      <div className="text-center space-y-4">
+        <h2 className="text-5xl font-black uppercase tracking-tighter">About Us</h2>
+        <div className="w-24 h-2 bg-emerald-500 mx-auto rounded-full"></div>
       </div>
-      <h3 className="text-3xl font-bold text-white flex items-center gap-4 mb-8">
-        <i className="fas fa-history text-emerald-500"></i> Our Legacy
-      </h3>
-      <p className="text-xl text-gray-400 leading-relaxed font-light">{history}</p>
+
+      <div className="glass p-12 lg:p-20 rounded-[4rem] border border-white/5 shadow-2xl relative overflow-hidden">
+        <div className="absolute -right-20 -bottom-20 opacity-5">
+          <i className="fas fa-history text-[20rem]"></i>
+        </div>
+        <h3 className="text-4xl font-black text-white flex items-center gap-4 mb-10 italic">
+          <i className="fas fa-history text-emerald-500"></i> Our History
+        </h3>
+        <div className="flex flex-col lg:flex-row gap-12 items-center">
+          <div className="lg:w-2/3 space-y-6">
+             <p className="text-xl text-gray-400 leading-relaxed font-light whitespace-pre-line">{history}</p>
+          </div>
+          <div className="lg:w-1/3">
+             <img src="sdimg/mgrplogo.png" className="w-full max-w-sm mx-auto rounded-3xl shadow-2xl border border-white/10" onError={(e) => (e.currentTarget.src = 'https://placehold.co/400x400/10172a/emerald?text=BSBDOMG+Legacy')} />
+          </div>
+        </div>
+      </div>
+
+      {/* Admins Section */}
+      <div className="space-y-12">
+        <h3 className="text-4xl font-black text-center uppercase tracking-tighter">Admins</h3>
+        <div className="flex flex-wrap justify-center gap-8">
+          {admins.map(member => <StaffCard key={member.id} member={member} />)}
+        </div>
+      </div>
+
+      {/* Trip Masters Section */}
+      <div className="space-y-12">
+        <h3 className="text-4xl font-black text-center uppercase tracking-tighter">Trip Masters</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          {masters.map(member => <StaffCard key={member.id} member={member} />)}
+        </div>
+      </div>
     </div>
+  );
+};
+
+const StaffCard: React.FC<{ member: StaffMember }> = ({ member }) => (
+  <div className="glass p-10 rounded-[3rem] border border-white/5 flex flex-col items-center text-center group hover:border-emerald-500/30 transition-all duration-500 shadow-xl">
+    <div className="relative mb-6">
+      <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-emerald-500/20 group-hover:border-emerald-500 transition-colors shadow-2xl">
+        <img src={member.imageUrl} className="w-full h-full object-cover" onError={(e) => (e.currentTarget.src = 'https://placehold.co/200x200?text=Profile')} />
+      </div>
+      <a href={member.fbLink} target="_blank" rel="noreferrer" className="absolute -bottom-2 -right-2 w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white shadow-lg hover:scale-110 transition-transform">
+        <i className="fab fa-facebook-f"></i>
+      </a>
+    </div>
+    <h4 className="text-xl font-bold mb-1">{member.name}</h4>
+    <p className="text-sm text-gray-500 font-medium uppercase tracking-widest">{member.role}</p>
   </div>
 );
 
