@@ -4,14 +4,23 @@ import React, { useState, useEffect } from 'react';
 // --- Types ---
 type View = 'home' | 'about' | 'skins' | 'leaderboard' | 'tournament' | 'trip' | 'admin' | 'external';
 
+interface BusModel {
+  id: string;
+  name: string;
+  imageUrl: string;
+}
+
 interface Skin {
   id: string;
-  category: string;
+  modelId: string;
   title: string;
-  route: string;
   author: string;
+  route: string;
+  chassis: string;
   imageUrl: string;
-  code: string;
+  captchaCode: string;
+  paintUrl: string;
+  glassUrl: string;
 }
 
 interface LeaderboardEntry {
@@ -35,9 +44,25 @@ interface NavItem {
 }
 
 // --- Defaults ---
+const DEFAULT_MODELS: BusModel[] = [
+  { id: 'm1', name: 'KIWI 1JOG', imageUrl: 'https://images.unsplash.com/photo-1570125909232-eb263c188f7e?auto=format&fit=crop&q=80&w=800' },
+  { id: 'm2', name: 'APPLE UNIV', imageUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800' },
+  { id: 'm3', name: 'KIWI ABD', imageUrl: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800' },
+];
+
 const DEFAULT_SKINS: Skin[] = [
-  { id: 'OG1', category: 'KIWI 1JOG', title: 'Himalay Express', route: 'Dhaka - Laksham', author: 'Md Rashel Babu Sr.', imageUrl: 'https://placehold.co/600x400/1e293b/white?text=Himalay+Express', code: 'OG1' },
-  { id: 'UNIV01', category: 'APPLE UNIV', title: 'Bangla Star', route: 'Pabna - Chattogram', author: 'Sakil Islam', imageUrl: 'https://placehold.co/600x400/1e293b/white?text=Bangla+Star', code: 'UNIV01' },
+  { 
+    id: 's1', modelId: 'm1', title: 'Himalay Express', 
+    author: 'Md Rashel Babu Sr.', route: 'Dhaka - Laksham', chassis: 'Kiwi 1JOG',
+    imageUrl: 'https://placehold.co/600x400/1e293b/white?text=Himalay+Express', 
+    captchaCode: 'OG1', paintUrl: '#', glassUrl: '#' 
+  },
+  { 
+    id: 's2', modelId: 'm2', title: 'Bangla Star', 
+    author: 'Sakil Islam', route: 'Pabna - Chattogram', chassis: 'Apple Univ',
+    imageUrl: 'https://placehold.co/600x400/1e293b/white?text=Bangla+Star', 
+    captchaCode: 'UNIV01', paintUrl: '#', glassUrl: '#' 
+  },
 ];
 
 const DEFAULT_LEADERBOARD: LeaderboardEntry[] = [
@@ -52,28 +77,27 @@ const DEFAULT_TRIPS: TripSchedule[] = [
   { time: '09:15 PM', master: 'Imroz', id: 'IMROZ' },
 ];
 
-// Paths strictly relative to the root for maximum compatibility
 const NAV_ITEMS: NavItem[] = [
   { id: 'home', icon: 'fa-home', label: 'Home', path: null },
-  { id: 'about', icon: 'fa-info-circle', label: 'About Us', path: 'BSBDOMG/sidebar/about.html' },
-  { id: 'skins', icon: 'fa-images', label: 'Bus Skins', path: 'BSBDOMG/skins/skins.html' },
-  { id: 'leaderboard', icon: 'fa-trophy', label: 'Leaderboard', path: 'BSBDOMG/sidebar/leaderboard.html' },
-  { id: 'trip', icon: 'fa-clock', label: 'Trip & Rules', path: 'BSBDOMG/sidebar/trip.html' },
-  { id: 'tournament', icon: 'fa-gamepad', label: 'Tournament', path: 'BSBDOMG/sidebar/tournament.html' },
+  { id: 'about', icon: 'fa-info-circle', label: 'About Us', path: null }, 
+  { id: 'skins', icon: 'fa-images', label: 'Bus Skins', path: null }, 
+  { id: 'leaderboard', icon: 'fa-trophy', label: 'Leaderboard', path: null }, 
+  { id: 'trip', icon: 'fa-clock', label: 'Trip & Rules', path: null }, 
+  { id: 'tournament', icon: 'fa-gamepad', label: 'Tournament', path: null }, 
 ];
 
 const App: React.FC = () => {
   const [view, setView] = useState<View>('home');
-  const [externalUrl, setExternalUrl] = useState<string | null>(null);
+  const [selectedModel, setSelectedModel] = useState<BusModel | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [visitorCount, setVisitorCount] = useState(1248);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
-  const [iframeLoading, setIframeLoading] = useState(false);
 
   // --- Dynamic State ---
   const [marqueeText, setMarqueeText] = useState(localStorage.getItem('bsbd_marquee') || 'এই ওয়েবসাইটের কোনো লেখা, ছবি কিংবা স্কিন বিনা অনুমতিতে ব্যবহার করা নিষেধ। #BSBDOMG Official Group');
+  const [busModels, setBusModels] = useState<BusModel[]>(() => JSON.parse(localStorage.getItem('bsbd_models') || JSON.stringify(DEFAULT_MODELS)));
   const [skins, setSkins] = useState<Skin[]>(() => JSON.parse(localStorage.getItem('bsbd_skins') || JSON.stringify(DEFAULT_SKINS)));
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>(() => JSON.parse(localStorage.getItem('bsbd_leaderboard') || JSON.stringify(DEFAULT_LEADERBOARD)));
   const [trips, setTrips] = useState<TripSchedule[]>(() => JSON.parse(localStorage.getItem('bsbd_trips') || JSON.stringify(DEFAULT_TRIPS)));
@@ -82,11 +106,12 @@ const App: React.FC = () => {
   // --- Persistence ---
   useEffect(() => {
     localStorage.setItem('bsbd_marquee', marqueeText);
+    localStorage.setItem('bsbd_models', JSON.stringify(busModels));
     localStorage.setItem('bsbd_skins', JSON.stringify(skins));
     localStorage.setItem('bsbd_leaderboard', JSON.stringify(leaderboard));
     localStorage.setItem('bsbd_trips', JSON.stringify(trips));
     localStorage.setItem('bsbd_history', historyText);
-  }, [marqueeText, skins, leaderboard, trips, historyText]);
+  }, [marqueeText, busModels, skins, leaderboard, trips, historyText]);
 
   useEffect(() => {
     const count = parseInt(localStorage.getItem('visitor_count') || '1248');
@@ -109,64 +134,20 @@ const App: React.FC = () => {
   const handleNavClick = (item: Partial<NavItem>) => {
     setShowLogin(false);
     setSidebarOpen(false);
-    
-    // Reset external URL first to force an iframe unmount/mount if clicking the same item
-    setExternalUrl(null);
-    
-    if (item.path) {
-      setIframeLoading(true);
-      setView('external');
-      // Delay setting URL slightly to ensure state transition is clean
-      setTimeout(() => setExternalUrl(item.path!), 10);
-    } else {
-      setView((item.id as View) || 'home');
-    }
+    setSelectedModel(null);
+    setView((item.id as View) || 'home');
   };
 
   const renderContent = () => {
     if (showLogin) return <AdminLogin password={passwordInput} setPassword={setPasswordInput} onSubmit={handleLoginSubmit} onCancel={() => setShowLogin(false)} />;
 
-    if (view === 'external' && externalUrl) {
-      return (
-        <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-          <div className="flex justify-between items-center px-4">
-            <h2 className="text-emerald-500 text-xs font-black uppercase tracking-[0.3em]">Resource Module Active</h2>
-            <a 
-              href={externalUrl} 
-              target="_blank" 
-              rel="noreferrer" 
-              className="text-[10px] bg-white/5 hover:bg-emerald-500 transition-colors px-4 py-2 rounded-full font-bold text-gray-400 hover:text-white border border-white/5 uppercase tracking-widest"
-            >
-              <i className="fas fa-external-link-alt mr-2"></i> Open In New Tab
-            </a>
-          </div>
-          
-          <div className="w-full h-[85vh] glass rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl relative bg-[#0a0f1d]">
-            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500/0 via-emerald-500/50 to-emerald-500/0 z-10"></div>
-            {iframeLoading && (
-              <div className="absolute inset-0 flex items-center justify-center bg-slate-950/90 z-0">
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-12 h-12 border-4 border-emerald-500/10 border-t-emerald-500 rounded-full animate-spin"></div>
-                  <span className="text-emerald-500/40 text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">Establishing Connection...</span>
-                </div>
-              </div>
-            )}
-            <iframe 
-              key={externalUrl}
-              src={externalUrl} 
-              className="w-full h-full border-none relative z-1" 
-              title="External Resource"
-              onLoad={() => setIframeLoading(false)}
-              // Extended sandbox to allow downloads and popups for Firebase/LocalScripts
-              sandbox="allow-scripts allow-same-origin allow-forms allow-popups allow-downloads allow-modals"
-            />
-          </div>
-        </div>
-      );
-    }
-
     switch(view) {
-      case 'skins': return <SkinsGallery skins={skins} />;
+      case 'skins': 
+        return selectedModel ? (
+          <SkinGalleryView model={selectedModel} skins={skins} onBack={() => setSelectedModel(null)} />
+        ) : (
+          <BusModelSelection models={busModels} onSelect={setSelectedModel} />
+        );
       case 'leaderboard': return <LeaderboardSection data={leaderboard} />;
       case 'trip': return <TripRulesSection schedules={trips} />;
       case 'tournament': return <TournamentSection />;
@@ -175,6 +156,7 @@ const App: React.FC = () => {
         return isLoggedIn ? (
           <AdminDashboard 
             marquee={marqueeText} setMarquee={setMarqueeText}
+            busModels={busModels} setBusModels={setBusModels}
             skins={skins} setSkins={setSkins}
             leaderboard={leaderboard} setLeaderboard={setLeaderboard}
             trips={trips} setTrips={setTrips}
@@ -204,10 +186,10 @@ const App: React.FC = () => {
       </div>
 
       {/* Sidebar */}
-      <nav className={`fixed inset-y-0 left-0 w-72 glass z-[120] transform transition-transform duration-500 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}>
+      <nav className={`fixed inset-y-0 left-0 w-72 bg-[#0a0f1d] border-r border-white/5 z-[120] transform transition-transform duration-500 ease-out ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 shadow-2xl`}>
         <div className="p-8 h-full flex flex-col justify-between overflow-y-auto">
           <div className="space-y-8">
-            <div className="flex flex-col items-center gap-2 py-6 border-b border-white/5 cursor-pointer" onClick={() => handleNavClick({ id: 'home', path: null })}>
+            <div className="flex flex-col items-center gap-2 py-6 border-b border-white/5 cursor-pointer" onClick={() => handleNavClick({ id: 'home' })}>
               <h1 className="text-3xl font-black tracking-tighter">BSBD<span className="text-emerald-500">OMG</span></h1>
               <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest text-center">Official Multiplayer Group</span>
             </div>
@@ -217,7 +199,7 @@ const App: React.FC = () => {
                 <li key={item.id}>
                   <button 
                     onClick={() => handleNavClick(item)}
-                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${ (view === item.id || (view === 'external' && externalUrl === item.path)) && !showLogin ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                    className={`w-full flex items-center gap-4 px-4 py-3.5 rounded-2xl transition-all duration-300 ${ (view === item.id) && !showLogin ? 'bg-emerald-500 text-white shadow-xl shadow-emerald-500/20' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
                   >
                     <i className={`fas ${item.icon} w-5 text-center`}></i>
                     <span className="font-semibold text-sm">{item.label}</span>
@@ -272,6 +254,147 @@ const App: React.FC = () => {
   );
 };
 
+// --- View: Bus Model Selection ---
+const BusModelSelection: React.FC<{ models: BusModel[], onSelect: (m: BusModel) => void }> = ({ models, onSelect }) => {
+  const [search, setSearch] = useState('');
+  const filtered = models.filter(m => m.name.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="space-y-12 animate-in fade-in duration-700">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="space-y-2">
+          <h2 className="text-5xl font-black uppercase tracking-tighter">Bus Models</h2>
+          <p className="text-gray-500 font-medium">Select a chassis to browse available skins</p>
+        </div>
+        <div className="relative group w-full lg:w-96">
+          <i className="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-emerald-500 transition-colors"></i>
+          <input 
+            type="text" placeholder="Search models..." 
+            className="w-full pl-16 pr-8 py-5 glass rounded-3xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-medium"
+            value={search} onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {filtered.map(model => (
+          <div 
+            key={model.id} 
+            onClick={() => onSelect(model)}
+            className="group cursor-pointer relative glass rounded-[3rem] overflow-hidden border border-white/5 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl hover:shadow-emerald-500/10"
+          >
+            <div className="h-64 overflow-hidden relative">
+              <img src={model.imageUrl} alt={model.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+              <div className="absolute bottom-8 left-8 right-8 flex justify-between items-center">
+                <h3 className="text-2xl font-black uppercase tracking-tighter">{model.name}</h3>
+                <div className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-emerald-500 transform translate-x-4 opacity-0 group-hover:translate-x-0 group-hover:opacity-100 transition-all">
+                  <i className="fas fa-chevron-right"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// --- View: Skin Gallery for Model ---
+const SkinGalleryView: React.FC<{ model: BusModel, skins: Skin[], onBack: () => void }> = ({ model, skins, onBack }) => {
+  const [search, setSearch] = useState('');
+  const filtered = skins.filter(s => s.modelId === model.id && s.title.toLowerCase().includes(search.toLowerCase()));
+
+  return (
+    <div className="space-y-12 animate-in fade-in slide-in-from-right-8 duration-700">
+      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+        <div className="space-y-4">
+          <button onClick={onBack} className="flex items-center gap-2 text-emerald-500 text-xs font-black uppercase tracking-widest hover:gap-3 transition-all">
+            <i className="fas fa-arrow-left"></i> Back to Models
+          </button>
+          <div className="space-y-1">
+            <h2 className="text-5xl font-black uppercase tracking-tighter">{model.name} <span className="text-emerald-500">Skins</span></h2>
+            <p className="text-gray-500 font-medium">Browse high-quality liveries for this chassis</p>
+          </div>
+        </div>
+        <div className="relative group w-full lg:w-96">
+          <i className="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-emerald-500 transition-colors"></i>
+          <input 
+            type="text" placeholder={`Search ${model.name} skins...`} 
+            className="w-full pl-16 pr-8 py-5 glass rounded-3xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-medium"
+            value={search} onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {filtered.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
+          {filtered.map(skin => <SkinCard key={skin.id} skin={skin} />)}
+        </div>
+      ) : (
+        <div className="py-32 text-center glass rounded-[3rem] border border-white/5 border-dashed">
+          <i className="fas fa-images text-4xl text-gray-600 mb-4"></i>
+          <p className="text-gray-500 font-bold">No skins available for this model yet</p>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const SkinCard: React.FC<{ skin: Skin }> = ({ skin }) => {
+  const [verified, setVerified] = useState(false);
+  const [input, setInput] = useState('');
+
+  return (
+    <div className="glass rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all duration-700 border border-white/5">
+      <div className="h-64 overflow-hidden relative">
+        <img src={skin.imageUrl} alt={skin.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
+        <div className="absolute top-6 left-6 bg-emerald-500 text-white px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl">{skin.chassis}</div>
+      </div>
+      <div className="p-10 space-y-6">
+        <div className="space-y-2">
+          <h3 className="text-2xl font-bold">{skin.title}</h3>
+          <div className="space-y-1">
+            <p className="text-sm text-gray-500 flex items-center gap-2">
+              <i className="fas fa-map-marker-alt text-emerald-500/50 w-4"></i> {skin.route}
+            </p>
+            <p className="text-sm text-gray-500 flex items-center gap-2">
+              <i className="fas fa-palette text-emerald-500/50 w-4"></i> Designed By: <span className="text-emerald-400/80">{skin.author}</span>
+            </p>
+          </div>
+        </div>
+        
+        {!verified ? (
+          <div className="space-y-4 pt-4 border-t border-white/5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Authentication</span>
+              <span className="text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-lg text-[10px] font-bold">Hint: {skin.captchaCode}</span>
+            </div>
+            <div className="flex gap-3">
+              <input 
+                type="text" placeholder="Access Code" 
+                className="flex-grow bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-sm focus:outline-none focus:border-emerald-500/50 transition-colors uppercase font-mono" 
+                value={input} onChange={(e) => setInput(e.target.value.toUpperCase())} 
+              />
+              <button 
+                onClick={() => input === skin.captchaCode ? setVerified(true) : alert('Incorrect Authentication Code!')} 
+                className="px-6 py-3 bg-emerald-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all"
+              >
+                Verify
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="flex gap-3 pt-4 border-t border-white/5">
+            <a href={skin.paintUrl} className="flex-grow py-4 bg-emerald-500 rounded-2xl font-bold text-sm text-center transition-all shadow-lg shadow-emerald-500/20 hover:scale-105">Paint</a>
+            <a href={skin.glassUrl} className="flex-grow py-4 glass border-white/10 hover:bg-emerald-500 rounded-2xl font-bold text-sm text-center transition-all">Glass</a>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 // --- Footer Component ---
 const Footer: React.FC<{ visitorCount: number }> = ({ visitorCount }) => (
   <footer className="mt-auto px-6 lg:px-12 pb-12 pt-16 w-full max-w-7xl mx-auto">
@@ -320,26 +443,207 @@ const Footer: React.FC<{ visitorCount: number }> = ({ visitorCount }) => (
   </footer>
 );
 
-// --- Admin Components ---
+// --- Admin Dashboard ---
+
+interface AdminProps {
+  marquee: string; setMarquee: (s: string) => void;
+  busModels: BusModel[]; setBusModels: (m: BusModel[]) => void;
+  skins: Skin[]; setSkins: (s: Skin[]) => void;
+  leaderboard: LeaderboardEntry[]; setLeaderboard: (l: LeaderboardEntry[]) => void;
+  trips: TripSchedule[]; setTrips: (t: TripSchedule[]) => void;
+  history: string; setHistory: (h: string) => void;
+  onLogout: () => void;
+}
+
+const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, busModels, setBusModels, skins, setSkins, leaderboard, setLeaderboard, trips, setTrips, history, setHistory, onLogout }) => {
+  const [activeTab, setActiveTab] = useState<'notice' | 'models' | 'skins' | 'leaderboard' | 'trips' | 'about'>('notice');
+  
+  // States for new entries
+  const [newModel, setNewModel] = useState<BusModel>({ id: '', name: '', imageUrl: '' });
+  const [newSkin, setNewSkin] = useState<Skin>({ 
+    id: '', modelId: '', title: '', author: '', route: '', chassis: '', 
+    imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
+  });
+
+  const addModel = () => {
+    if(!newModel.name) return;
+    setBusModels([...busModels, { ...newModel, id: 'm' + Date.now() }]);
+    setNewModel({ id: '', name: '', imageUrl: '' });
+  };
+
+  const addSkin = () => {
+    if(!newSkin.title || !newSkin.modelId) return;
+    setSkins([...skins, { ...newSkin, id: 's' + Date.now() }]);
+    setNewSkin({ 
+      id: '', modelId: '', title: '', author: '', route: '', chassis: '', 
+      imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
+    });
+  };
+
+  return (
+    <div className="space-y-10 animate-in fade-in duration-500 pb-20">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-white/10 pb-10">
+        <div>
+          <h2 className="text-4xl font-black text-orange-400 uppercase tracking-tighter italic">Control Panel</h2>
+          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Authorized Management Access</p>
+        </div>
+        <button onClick={onLogout} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl active:scale-95">End Session</button>
+      </div>
+
+      <div className="flex flex-wrap gap-3">
+        {['notice', 'models', 'skins', 'leaderboard', 'trips', 'about'].map(tab => (
+          <button 
+            key={tab} onClick={() => setActiveTab(tab as any)}
+            className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/20' : 'glass text-gray-400 hover:bg-white/5'}`}
+          >
+            {tab}
+          </button>
+        ))}
+      </div>
+
+      <div className="glass p-10 lg:p-14 rounded-[3.5rem] border border-white/10 min-h-[600px] shadow-2xl">
+        {activeTab === 'notice' && (
+          <div className="space-y-8 max-w-3xl">
+            <h3 className="text-2xl font-bold">Marquee Announcement</h3>
+            <textarea 
+              className="w-full h-48 glass bg-white/5 border-white/10 rounded-[2rem] p-8 focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg font-bengali"
+              value={marquee} onChange={(e) => setMarquee(e.target.value)}
+            />
+          </div>
+        )}
+
+        {activeTab === 'models' && (
+          <div className="space-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-8 glass border-white/5 rounded-[2.5rem]">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Model Name</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="e.g. KIWI RJ2S" value={newModel.name} onChange={e => setNewModel({...newModel, name: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Preview Image URL</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="https://..." value={newModel.imageUrl} onChange={e => setNewModel({...newModel, imageUrl: e.target.value})} />
+              </div>
+              <button onClick={addModel} className="md:col-span-2 bg-emerald-500 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm shadow-xl">Add Model</button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {busModels.map(m => (
+                <div key={m.id} className="flex items-center justify-between p-6 glass border-white/5 rounded-3xl group">
+                  <div className="flex items-center gap-4">
+                    <img src={m.imageUrl} className="w-12 h-12 rounded-xl object-cover" />
+                    <p className="font-bold">{m.name}</p>
+                  </div>
+                  <button onClick={() => setBusModels(busModels.filter(x => x.id !== m.id))} className="text-red-500 opacity-0 group-hover:opacity-100 transition-all"><i className="fas fa-trash"></i></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'skins' && (
+          <div className="space-y-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8 glass border-white/5 rounded-[2.5rem]">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Model</label>
+                <select className="w-full glass bg-white/5 p-4 rounded-2xl" value={newSkin.modelId} onChange={e => setNewSkin({...newSkin, modelId: e.target.value})}>
+                  <option value="">Select Model...</option>
+                  {busModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Skin Title</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="e.g. Green Line" value={newSkin.title} onChange={e => setNewSkin({...newSkin, title: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Author</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="e.g. Admin" value={newSkin.author} onChange={e => setNewSkin({...newSkin, author: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Route</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="e.g. Dhaka-Sylhet" value={newSkin.route} onChange={e => setNewSkin({...newSkin, route: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Unlock Code</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="e.g. GL01" value={newSkin.captchaCode} onChange={e => setNewSkin({...newSkin, captchaCode: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Preview Image</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl" placeholder="URL" value={newSkin.imageUrl} onChange={e => setNewSkin({...newSkin, imageUrl: e.target.value})} />
+              </div>
+              <button onClick={addSkin} className="lg:col-span-3 bg-emerald-500 py-4 rounded-2xl font-bold uppercase tracking-widest text-sm shadow-xl mt-4">Publish Skin</button>
+            </div>
+            
+            <div className="grid gap-4">
+              {skins.map(s => (
+                <div key={s.id} className="flex items-center justify-between p-6 glass border-white/5 rounded-3xl group">
+                  <div className="flex items-center gap-6">
+                    <img src={s.imageUrl} className="w-16 h-10 object-cover rounded-lg" />
+                    <div>
+                      <p className="font-bold">{s.title}</p>
+                      <p className="text-xs text-gray-500">{busModels.find(m => m.id === s.modelId)?.name || 'Unknown'}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => setSkins(skins.filter(x => x.id !== s.id))} className="text-red-500 opacity-0 group-hover:opacity-100 transition-all"><i className="fas fa-trash-alt"></i></button>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'leaderboard' && (
+          <div className="space-y-8">
+            <div className="flex items-center justify-between"><h3 className="text-2xl font-bold">Roster Ranking</h3><button onClick={() => setLeaderboard([...leaderboard, { rank: '?', name: 'New Driver', id: 'D'+Date.now(), trips: 0 }])} className="px-6 py-2 bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all">Add Driver</button></div>
+            <div className="glass rounded-[2rem] overflow-hidden border border-white/5">
+              <table className="w-full text-left">
+                <thead className="bg-white/5"><tr><th className="p-6 text-[10px] font-black uppercase text-gray-500">Rank</th><th className="p-6 text-[10px] font-black uppercase text-gray-500">Driver</th><th className="p-6 text-center text-[10px] font-black uppercase text-gray-500">Trips</th><th className="p-6"></th></tr></thead>
+                <tbody className="divide-y divide-white/5">
+                  {leaderboard.map(p => (
+                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
+                      <td className="p-6"><input className="bg-transparent font-black w-16 focus:text-emerald-500 outline-none" value={p.rank} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, rank: e.target.value} : x))} /></td>
+                      <td className="p-6"><input className="bg-transparent block font-bold text-lg focus:text-emerald-500 outline-none w-full" value={p.name} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, name: e.target.value} : x))} /><span className="text-[10px] text-gray-600 font-mono">{p.id}</span></td>
+                      <td className="p-6 text-center"><input type="number" className="glass bg-white/5 w-24 p-3 text-center rounded-xl font-bold focus:ring-1 focus:ring-emerald-500 outline-none" value={p.trips} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, trips: parseInt(e.target.value)} : x))} /></td>
+                      <td className="p-6"><button onClick={() => setLeaderboard(leaderboard.filter(x => x.id !== p.id))} className="text-red-500/30 hover:text-red-500"><i className="fas fa-times-circle"></i></button></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'trips' && (
+          <div className="space-y-8">
+             <div className="flex items-center justify-between"><h3 className="text-2xl font-bold">Operational Timing</h3><button onClick={() => setTrips([...trips, { time: '00:00 AM', master: 'New Master', id: 'NEW' }])} className="px-6 py-2 bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all">Add Trip</button></div>
+             <div className="grid gap-6">
+               {trips.map((t, idx) => (
+                 <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-6 p-8 glass border-white/5 rounded-[2.5rem] relative group">
+                   <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-600 ml-2">Time</label><input className="w-full glass bg-white/5 p-4 rounded-2xl text-lg font-black focus:ring-1 focus:ring-emerald-500 outline-none" value={t.time} onChange={e => setTrips(trips.map((x, i) => i === idx ? {...x, time: e.target.value} : x))} /></div>
+                   <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-600 ml-2">Master</label><input className="w-full glass bg-white/5 p-4 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-emerald-500 outline-none" value={t.master} onChange={e => setTrips(trips.map((x, i) => i === idx ? {...x, master: e.target.value} : x))} /></div>
+                   <div className="space-y-2"><label className="text-[10px] font-black uppercase text-gray-600 ml-2">Identifier</label><div className="flex gap-4"><input className="flex-grow glass bg-white/5 p-4 rounded-2xl text-xs font-mono focus:ring-1 focus:ring-emerald-500 outline-none" value={t.id} onChange={e => setTrips(trips.map((x, i) => i === idx ? {...x, id: e.target.value} : x))} /><button onClick={() => setTrips(trips.filter((_, i) => i !== idx))} className="w-14 h-14 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"><i className="fas fa-trash"></i></button></div></div>
+                 </div>
+               ))}
+             </div>
+          </div>
+        )}
+
+        {activeTab === 'about' && (
+          <div className="space-y-8 max-w-4xl"><h3 className="text-2xl font-bold">Historical Narrative</h3><textarea className="w-full h-80 glass bg-white/5 border-white/10 rounded-[2.5rem] p-10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg leading-relaxed text-gray-300 font-light" value={history} onChange={(e) => setHistory(e.target.value)} placeholder="Compose the community story..." /></div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 const AdminLogin: React.FC<{ password: string, setPassword: (s: string) => void, onSubmit: (e: React.FormEvent) => void, onCancel: () => void }> = ({ password, setPassword, onSubmit, onCancel }) => (
   <div className="max-w-md mx-auto py-12 animate-in fade-in zoom-in duration-500">
     <div className="glass p-10 rounded-[3rem] border border-orange-500/20 shadow-2xl space-y-8">
       <div className="text-center">
-        <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <i className="fas fa-fingerprint text-3xl text-orange-500"></i>
-        </div>
+        <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mx-auto mb-6"><i className="fas fa-fingerprint text-3xl text-orange-500"></i></div>
         <h2 className="text-2xl font-bold mb-1">Authorization</h2>
         <p className="text-gray-500 text-xs uppercase tracking-widest">Access code required</p>
       </div>
-      
       <form onSubmit={onSubmit} className="space-y-5">
-        <input 
-          type="password" placeholder="••••••••" 
-          className="w-full glass bg-white/5 border-white/10 p-5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-2xl tracking-[0.5em]"
-          value={password} onChange={(e) => setPassword(e.target.value)}
-          autoFocus
-        />
+        <input type="password" placeholder="••••••••" className="w-full glass bg-white/5 border-white/10 p-5 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 text-center text-2xl tracking-[0.5em]" value={password} onChange={(e) => setPassword(e.target.value)} autoFocus />
         <div className="grid grid-cols-2 gap-4">
           <button type="button" onClick={onCancel} className="py-4 glass hover:bg-white/5 rounded-2xl font-bold text-sm transition-all">Cancel</button>
           <button type="submit" className="py-4 bg-orange-500 hover:bg-orange-600 rounded-2xl font-bold text-sm shadow-xl shadow-orange-500/20 transition-all">Verify</button>
@@ -349,51 +653,39 @@ const AdminLogin: React.FC<{ password: string, setPassword: (s: string) => void,
   </div>
 );
 
-// --- View Content ---
+// --- Sections ---
 
 const HomeSection: React.FC<{ onNavigate: (item: Partial<NavItem>) => void }> = ({ onNavigate }) => (
   <div className="space-y-24 animate-in fade-in slide-in-from-bottom-8 duration-1000">
     <div className="flex flex-col items-center text-center space-y-8 pt-8">
-      <span className="px-5 py-2 glass rounded-full text-emerald-400 text-xs font-bold uppercase tracking-[0.3em] border-emerald-500/20">The Premier Choice</span>
-      <h1 className="text-6xl lg:text-[8rem] font-black leading-[0.9] tracking-tighter uppercase">
-        BSBD<span className="text-emerald-500">OMG</span>
-      </h1>
-      <p className="max-w-3xl mx-auto text-gray-400 text-lg lg:text-xl leading-relaxed font-light">
-        Experience the next level of Bus Simulator Bangladesh. Join a professional network of players, explore premium content, and dominate the leaderboard.
-      </p>
+      <span className="px-5 py-2 glass rounded-full text-emerald-400 text-xs font-bold uppercase tracking-[0.3em] border-emerald-500/20">official multiplayer group</span>
+      <h1 className="text-6xl lg:text-[8rem] font-black leading-[0.9] tracking-tighter uppercase">BSBD<span className="text-emerald-500">OMG</span></h1>
+      <p className="max-w-3xl mx-auto text-gray-400 text-lg lg:text-xl leading-relaxed font-light">Experience the next level of Bus Simulator Bangladesh. Join a professional network of players, explore premium content, and dominate the leaderboard.</p>
       <div className="flex flex-wrap gap-5 pt-4 justify-center">
-        <button 
-          onClick={() => onNavigate({ id: 'skins', path: 'BSBDOMG/skins/skins.html' })} 
-          className="px-12 py-5 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-bold shadow-2xl shadow-emerald-500/30 transition-all active:scale-95 text-lg"
-        >
-          Explore Library
-        </button>
+        <button onClick={() => onNavigate({ id: 'skins' })} className="px-12 py-5 bg-emerald-500 hover:bg-emerald-600 rounded-2xl font-bold shadow-2xl shadow-emerald-500/30 transition-all active:scale-95 text-lg">Skin Library </button>
         <a href="https://forms.gle/K87fHr2StxKTN9P86" target="_blank" className="px-12 py-5 glass border-white/10 hover:bg-white/5 rounded-2xl font-bold transition-all text-lg">Join Community</a>
       </div>
     </div>
 
-    <div className="glass p-12 lg:p-16 rounded-[4rem] border border-white/5 text-center space-y-12">
-      <div className="space-y-2">
-        <h3 className="text-3xl font-bold">Connect With Us</h3>
-        <p className="text-gray-500">Stay updated with the latest news and schedules</p>
-      </div>
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-8">
-        {[
-          { icon: 'fa-google-play', label: 'Play Store', link: 'https://play.google.com' },
-          { icon: 'fa-facebook', label: 'Facebook Group', link: 'https://www.facebook.com/groups/bsbdgame' },
-          { icon: 'fa-discord', label: 'Discord Server', link: 'https://discord.gg/yQSMsnB3U3' },
-          { icon: 'fa-youtube', label: 'YouTube Channel', link: 'https://www.youtube.com/@bussimulatorbangladesh-bsbd' }
-        ].map((platform, idx) => (
-          <a 
-            key={idx} href={platform.link} target="_blank" rel="noreferrer"
-            className="group flex flex-col items-center gap-4 p-8 glass rounded-[2.5rem] border-white/5 hover:border-emerald-500/30 hover:bg-emerald-500/5 transition-all duration-500"
-          >
-            <div className="w-16 h-16 rounded-3xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 group-hover:scale-110 transition-transform">
-              <i className={`fab ${platform.icon} text-3xl`}></i>
-            </div>
-            <span className="font-bold text-sm tracking-wide">{platform.label}</span>
-          </a>
-        ))}
+    {/* Featured Hero Image Section */}
+    <div className="relative group overflow-hidden rounded-[3rem] lg:rounded-[4rem] border border-white/10 shadow-2xl">
+      <img
+        src="images/home-img.jpg"
+        alt="BSBD Hero"
+        className="w-full h-[400px] lg:h-[650px] object-cover group-hover:scale-105 transition-transform duration-1000"
+        onError={(e) => {
+          // Fallback if image path is not available during preview
+          (e.target as HTMLImageElement).src = "images/home-img.jp";
+        }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+      <div className="absolute bottom-12 left-12 right-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+        <div className="space-y-2">
+          <p className="text-emerald-500 font-black uppercase tracking-[0.4em] text-xs">Established 2021</p>
+          <h2 className="text-4xl lg:text-5xl font-black uppercase italic tracking-tight">Join the Movement</h2>
+          <p className="text-gray-300 max-w-lg text-sm lg:text-base">Experience high-fidelity bangladeshi bus simulation with the most active multiplayer group.</p>
+        </div>
+        <button onClick={() => onNavigate({ id: 'about' })} className="px-10 py-4 glass hover:bg-emerald-500 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl whitespace-nowrap">Learn Our History</button>
       </div>
     </div>
     
@@ -413,77 +705,6 @@ const HomeSection: React.FC<{ onNavigate: (item: Partial<NavItem>) => void }> = 
     </div>
   </div>
 );
-
-const SkinsGallery: React.FC<{ skins: Skin[] }> = ({ skins }) => {
-  const [search, setSearch] = useState('');
-  const filtered = skins.filter(s => s.title.toLowerCase().includes(search.toLowerCase()));
-
-  return (
-    <div className="space-y-12 animate-in fade-in duration-700">
-      <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-        <div className="space-y-2">
-          <h2 className="text-5xl font-black uppercase tracking-tighter">Premium Gallery</h2>
-          <p className="text-gray-500 font-medium">Explore and verify exclusive bus liveries</p>
-        </div>
-        <div className="relative group w-full lg:w-96">
-          <i className="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-emerald-500 transition-colors"></i>
-          <input 
-            type="text" placeholder="Search liveries..." 
-            className="w-full pl-16 pr-8 py-5 glass rounded-3xl focus:outline-none focus:ring-2 focus:ring-emerald-500 transition-all text-sm font-medium"
-            value={search} onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
-        {filtered.map(skin => <SkinCard key={skin.id} skin={skin} />)}
-      </div>
-    </div>
-  );
-};
-
-const SkinCard: React.FC<{ skin: Skin }> = ({ skin }) => {
-  const [verified, setVerified] = useState(false);
-  const [input, setInput] = useState('');
-
-  return (
-    <div className="glass rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all duration-700 border border-white/5">
-      <div className="h-64 overflow-hidden relative">
-        <img src={skin.imageUrl} alt={skin.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-        <div className="absolute top-6 left-6 bg-emerald-500 text-white px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl">{skin.category}</div>
-      </div>
-      <div className="p-10 space-y-6">
-        <div>
-          <h3 className="text-2xl font-bold mb-1">{skin.title}</h3>
-          <p className="text-sm text-gray-500 flex items-center gap-2">
-            <i className="fas fa-map-marker-alt text-emerald-500/50"></i> {skin.route}
-          </p>
-          <p className="text-[10px] text-gray-400 mt-4 uppercase font-bold tracking-widest">Design By: {skin.author}</p>
-        </div>
-        {!verified ? (
-          <div className="space-y-4 pt-4 border-t border-white/5">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Authentication</span>
-              <span className="text-emerald-500 bg-emerald-500/10 px-3 py-1 rounded-lg text-[10px] font-bold">Hint: {skin.code}</span>
-            </div>
-            <div className="flex gap-3">
-              <input 
-                type="text" placeholder="Access Code" 
-                className="flex-grow bg-white/5 border border-white/10 rounded-2xl px-6 py-3 text-sm focus:outline-none focus:border-emerald-500/50 transition-colors uppercase font-mono" 
-                value={input} onChange={(e) => setInput(e.target.value.toUpperCase())} 
-              />
-              <button onClick={() => input === skin.code ? setVerified(true) : alert('Incorrect Authentication Code!')} className="px-6 py-3 bg-emerald-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-emerald-500/20 hover:scale-105 active:scale-95 transition-all">Verify</button>
-            </div>
-          </div>
-        ) : (
-          <div className="flex gap-3 pt-4 border-t border-white/5">
-            <button className="flex-grow py-4 bg-white/10 hover:bg-emerald-500 rounded-2xl font-bold text-sm transition-all shadow-lg hover:shadow-emerald-500/20">Download Paint</button>
-            <button className="flex-grow py-4 bg-white/10 hover:bg-emerald-500 rounded-2xl font-bold text-sm transition-all shadow-lg hover:shadow-emerald-500/20">Download Glass</button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 const LeaderboardSection: React.FC<{ data: LeaderboardEntry[] }> = ({ data }) => (
   <div className="space-y-12 animate-in fade-in duration-700">
@@ -571,179 +792,5 @@ const AboutUsSection: React.FC<{ history: string }> = ({ history }) => (
     </div>
   </div>
 );
-
-// --- Admin Dashboard ---
-
-interface AdminProps {
-  marquee: string; setMarquee: (s: string) => void;
-  skins: Skin[]; setSkins: (s: Skin[]) => void;
-  leaderboard: LeaderboardEntry[]; setLeaderboard: (l: LeaderboardEntry[]) => void;
-  trips: TripSchedule[]; setTrips: (t: TripSchedule[]) => void;
-  history: string; setHistory: (h: string) => void;
-  onLogout: () => void;
-}
-
-const AdminDashboard: React.FC<AdminProps> = ({ marquee, setMarquee, skins, setSkins, leaderboard, setLeaderboard, trips, setTrips, history, setHistory, onLogout }) => {
-  const [activeTab, setActiveTab] = useState<'notice' | 'skins' | 'leaderboard' | 'trips' | 'about'>('notice');
-  const [newSkin, setNewSkin] = useState<Skin>({ id: '', category: '', title: '', route: '', author: '', imageUrl: '', code: '' });
-
-  const addSkin = () => {
-    if(!newSkin.title) return;
-    setSkins([...skins, { ...newSkin, id: Date.now().toString() }]);
-    setNewSkin({ id: '', category: '', title: '', route: '', author: '', imageUrl: '', code: '' });
-  };
-
-  return (
-    <div className="space-y-10 animate-in fade-in duration-500 pb-20">
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-white/10 pb-10">
-        <div>
-          <h2 className="text-4xl font-black text-orange-400 uppercase tracking-tighter italic">Control Panel</h2>
-          <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1">Authorized Management Access</p>
-        </div>
-        <button onClick={onLogout} className="px-8 py-3 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl active:scale-95">End Session</button>
-      </div>
-
-      <div className="flex flex-wrap gap-3">
-        {['notice', 'skins', 'leaderboard', 'trips', 'about'].map(tab => (
-          <button 
-            key={tab} onClick={() => setActiveTab(tab as any)}
-            className={`px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all ${activeTab === tab ? 'bg-orange-500 text-white shadow-xl shadow-orange-500/20' : 'glass text-gray-400 hover:bg-white/5'}`}
-          >
-            {tab}
-          </button>
-        ))}
-      </div>
-
-      <div className="glass p-10 lg:p-14 rounded-[3.5rem] border border-white/10 min-h-[600px] shadow-2xl">
-        {activeTab === 'notice' && (
-          <div className="space-y-8 max-w-3xl">
-            <div className="space-y-2">
-              <h3 className="text-2xl font-bold">Marquee Announcement</h3>
-              <p className="text-gray-500 text-sm">This text scrolls across the top of all pages.</p>
-            </div>
-            <textarea 
-              className="w-full h-48 glass bg-white/5 border-white/10 rounded-[2rem] p-8 focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg leading-relaxed font-bengali"
-              value={marquee} onChange={(e) => setMarquee(e.target.value)}
-              placeholder="Enter news, alerts, or welcome messages..."
-            />
-          </div>
-        )}
-
-        {activeTab === 'skins' && (
-          <div className="space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {['title', 'route', 'category', 'author', 'imageUrl', 'code'].map(field => (
-                <div key={field} className="space-y-2">
-                  <label className="text-[10px] font-black uppercase text-gray-500 tracking-widest ml-4">{field}</label>
-                  <input 
-                    type="text" placeholder={`Enter ${field}...`}
-                    className="w-full glass bg-white/5 p-4 rounded-2xl text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500" 
-                    value={(newSkin as any)[field]} 
-                    onChange={e => setNewSkin({...newSkin, [field]: e.target.value})} 
-                  />
-                </div>
-              ))}
-              <button onClick={addSkin} className="lg:col-span-3 mt-4 bg-emerald-500 py-5 rounded-2xl font-black uppercase tracking-widest text-sm hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20">Publish New Skin</button>
-            </div>
-            
-            <div className="space-y-6 pt-10 border-t border-white/5">
-              <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest">Active Database</h4>
-              <div className="grid gap-4">
-                {skins.map(s => (
-                  <div key={s.id} className="flex items-center justify-between p-6 glass border-white/5 rounded-3xl hover:bg-white/5 transition-colors group">
-                    <div>
-                      <p className="font-bold text-lg">{s.title}</p>
-                      <p className="text-xs text-gray-500 mt-1 uppercase tracking-widest">{s.category} • By {s.author}</p>
-                    </div>
-                    <button onClick={() => setSkins(skins.filter(sk => sk.id !== s.id))} className="w-12 h-12 rounded-xl bg-red-500/10 text-red-500 opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center hover:bg-red-500 hover:text-white"><i className="fas fa-trash-alt"></i></button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'leaderboard' && (
-          <div className="space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-2xl font-bold">Roster Ranking</h3>
-              <button onClick={() => setLeaderboard([...leaderboard, { rank: '?', name: 'New Driver', id: 'D'+Date.now(), trips: 0 }])} className="px-6 py-2 bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all">Add Driver</button>
-            </div>
-            <div className="glass rounded-[2rem] overflow-hidden border border-white/5">
-              <table className="w-full text-left">
-                <thead className="bg-white/5">
-                  <tr>
-                    <th className="p-6 text-[10px] font-black uppercase text-gray-500">Rank</th>
-                    <th className="p-6 text-[10px] font-black uppercase text-gray-500">Driver</th>
-                    <th className="p-6 text-center text-[10px] font-black uppercase text-gray-500">Trips</th>
-                    <th className="p-6"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-white/5">
-                  {leaderboard.map(p => (
-                    <tr key={p.id} className="hover:bg-white/5 transition-colors">
-                      <td className="p-6"><input className="bg-transparent font-black w-16 focus:text-emerald-500 outline-none" value={p.rank} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, rank: e.target.value} : x))} /></td>
-                      <td className="p-6">
-                        <input className="bg-transparent block font-bold text-lg focus:text-emerald-500 outline-none w-full" value={p.name} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, name: e.target.value} : x))} />
-                        <span className="text-[10px] text-gray-600 font-mono">{p.id}</span>
-                      </td>
-                      <td className="p-6 text-center">
-                        <input type="number" className="glass bg-white/5 w-24 p-3 text-center rounded-xl font-bold focus:ring-1 focus:ring-emerald-500 outline-none" value={p.trips} onChange={e => setLeaderboard(leaderboard.map(x => x.id === p.id ? {...x, trips: parseInt(e.target.value)} : x))} />
-                      </td>
-                      <td className="p-6">
-                        <button onClick={() => setLeaderboard(leaderboard.filter(x => x.id !== p.id))} className="text-red-500/30 hover:text-red-500"><i className="fas fa-times-circle"></i></button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        )}
-
-        {activeTab === 'about' && (
-          <div className="space-y-8 max-w-4xl">
-            <h3 className="text-2xl font-bold">Historical Narrative</h3>
-            <textarea 
-              className="w-full h-80 glass bg-white/5 border-white/10 rounded-[2.5rem] p-10 focus:outline-none focus:ring-2 focus:ring-orange-500 text-lg leading-relaxed text-gray-300 font-light"
-              value={history} onChange={(e) => setHistory(e.target.value)}
-              placeholder="Compose the community story..."
-            />
-          </div>
-        )}
-
-        {activeTab === 'trips' && (
-          <div className="space-y-8">
-             <div className="flex items-center justify-between">
-               <h3 className="text-2xl font-bold">Operational Timing</h3>
-               <button onClick={() => setTrips([...trips, { time: '00:00 AM', master: 'New Master', id: 'NEW' }])} className="px-6 py-2 bg-emerald-500 rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-emerald-500/20 hover:scale-105 transition-all">Add Trip</button>
-             </div>
-             <div className="grid gap-6">
-               {trips.map((t, idx) => (
-                 <div key={idx} className="grid grid-cols-1 md:grid-cols-3 gap-6 p-8 glass border-white/5 rounded-[2.5rem] relative group">
-                   <div className="space-y-2">
-                     <label className="text-[10px] font-black uppercase text-gray-600 ml-2">Time</label>
-                     <input className="w-full glass bg-white/5 p-4 rounded-2xl text-lg font-black focus:ring-1 focus:ring-emerald-500 outline-none" value={t.time} onChange={e => setTrips(trips.map((x, i) => i === idx ? {...x, time: e.target.value} : x))} />
-                   </div>
-                   <div className="space-y-2">
-                     <label className="text-[10px] font-black uppercase text-gray-600 ml-2">Master</label>
-                     <input className="w-full glass bg-white/5 p-4 rounded-2xl text-sm font-bold focus:ring-1 focus:ring-emerald-500 outline-none" value={t.master} onChange={e => setTrips(trips.map((x, i) => i === idx ? {...x, master: e.target.value} : x))} />
-                   </div>
-                   <div className="space-y-2">
-                     <label className="text-[10px] font-black uppercase text-gray-600 ml-2">Identifier</label>
-                     <div className="flex gap-4">
-                       <input className="flex-grow glass bg-white/5 p-4 rounded-2xl text-xs font-mono focus:ring-1 focus:ring-emerald-500 outline-none" value={t.id} onChange={e => setTrips(trips.map((x, i) => i === idx ? {...x, id: e.target.value} : x))} />
-                       <button onClick={() => setTrips(trips.filter((_, i) => i !== idx))} className="w-14 h-14 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"><i className="fas fa-trash"></i></button>
-                     </div>
-                   </div>
-                 </div>
-               ))}
-             </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
 
 export default App;
