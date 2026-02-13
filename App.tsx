@@ -16,7 +16,7 @@ interface Skin {
   title: string;
   author: string;
   route: string;
-  chassis: string;
+  model: string;
   imageUrl: string;
   captchaCode: string;
   paintUrl: string;
@@ -66,13 +66,13 @@ const DEFAULT_MODELS: BusModel[] = [
 const DEFAULT_SKINS: Skin[] = [
   { 
     id: 's1', modelId: 'm1', title: 'Himalay Express', 
-    author: 'Md Rashel Babu Sr.', route: 'Dhaka - Laksham', chassis: 'Kiwi 1JOG',
+    author: 'Md Rashel Babu Sr.', route: 'Dhaka - Laksham', model: 'Kiwi 1JOG',
     imageUrl: 'https://placehold.co/600x400/1e293b/white?text=Himalay+Express', 
     captchaCode: 'OG1', paintUrl: '#', glassUrl: '#' 
   },
   { 
     id: 's2', modelId: 'm2', title: 'Bangla Star', 
-    author: 'Sakil Islam', route: 'Pabna - Chattogram', chassis: 'Apple Univ',
+    author: 'Sakil Islam', route: 'Pabna - Chattogram', model: 'Apple Univ',
     imageUrl: 'https://placehold.co/600x400/1e293b/white?text=Bangla+Star', 
     captchaCode: 'UNIV01', paintUrl: '#', glassUrl: '#' 
   },
@@ -334,7 +334,7 @@ const BusModelSelection: React.FC<{ models: BusModel[], onSelect: (m: BusModel) 
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
         <div className="space-y-2">
           <h2 className="text-5xl font-black uppercase tracking-tighter">Bus Models</h2>
-          <p className="text-gray-500 font-medium">Select a chassis to browse available skins</p>
+          <p className="text-gray-500 font-medium">Select a model to browse available skins</p>
         </div>
         <div className="relative group w-full lg:w-96">
           <i className="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#ff6100] transition-colors"></i>
@@ -385,7 +385,7 @@ const SkinGalleryView: React.FC<{ model: BusModel, skins: Skin[], onBack: () => 
           </button>
           <div className="space-y-1">
             <h2 className="text-5xl font-black uppercase tracking-tighter">{model.name} <span className="text-[#ff6100]">Skins</span></h2>
-            <p className="text-gray-500 font-medium">Browse high-quality liveries for this chassis</p>
+            <p className="text-gray-500 font-medium">Browse high-quality liveries for this model</p>
           </div>
         </div>
         <div className="relative group w-full lg:w-96">
@@ -433,7 +433,7 @@ const SkinCard: React.FC<{ skin: Skin, delay: number }> = ({ skin, delay }) => {
     <div style={{ animationDelay: `${delay}ms` }} className="glass rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all duration-700 border border-white/5 animate-slide-up">
       <div className="h-64 overflow-hidden relative">
         <img src={skin.imageUrl} alt={skin.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-        <div className="absolute top-6 left-6 bg-[#ff6100] text-white px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transform group-hover:scale-110 transition-transform">{skin.chassis}</div>
+        <div className="absolute top-6 left-6 bg-[#ff6100] text-white px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transform group-hover:scale-110 transition-transform">{skin.model}</div>
       </div>
       <div className="p-10 space-y-6">
         <div className="space-y-2">
@@ -565,7 +565,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
   const [editModelData, setEditModelData] = useState<BusModel | null>(null);
 
   const [newSkin, setNewSkin] = useState<Skin>({ 
-    id: '', modelId: '', title: '', author: '', route: '', chassis: '', 
+    id: '', modelId: '', title: '', author: '', route: '', model: '', 
     imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
   });
   const [editingSkinId, setEditingSkinId] = useState<string | null>(null);
@@ -609,7 +609,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
     if(!newSkin.title || !newSkin.modelId) return;
     setSkins([...skins, { ...newSkin, id: 's' + Date.now() }]);
     setNewSkin({ 
-      id: '', modelId: '', title: '', author: '', route: '', chassis: '', 
+      id: '', modelId: '', title: '', author: '', route: '', model: '', 
       imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
     });
   };
@@ -753,7 +753,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
                 <label className="text-xs font-bold text-gray-500 ml-4">Model</label>
                 <select className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all appearance-none" value={newSkin.modelId} onChange={e => {
                   const m = busModels.find(x => x.id === e.target.value);
-                  setNewSkin({...newSkin, modelId: e.target.value, chassis: m?.name || ''});
+                  setNewSkin({...newSkin, modelId: e.target.value, model: m?.name || ''});
                 }}>
                   <option value="">Select Model...</option>
                   {busModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
