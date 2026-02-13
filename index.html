@@ -5,15 +5,42 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BSBDOMG | Official Site</title>
+    <link rel="icon" type="image/png" href="https://drive.google.com/uc?id=1MB_0ruqc-afJLvaa0mstAZ28P7rjwKzE">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Noto+Serif+Bengali:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { font-family: 'Poppins', sans-serif; background-color: #0f172a; color: white; overflow-x: hidden; }
+        body { font-family: 'Poppins', sans-serif; background-color: #000000; color: white; overflow-x: hidden; }
         .font-bengali { font-family: 'Noto Serif Bengali', serif; }
-        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .glass:hover { border-color: rgba(255, 97, 0, 0.3); box-shadow: 0 10px 40px -10px rgba(255, 97, 0, 0.1); }
+        
         @keyframes marquee { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         .animate-marquee { display: inline-block; white-space: nowrap; animation: marquee 25s linear infinite; }
+        
+        /* Custom Animations */
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        
+        .animate-fade-in { animation: fadeIn 0.5s ease-out forwards; }
+        .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+        .animate-scale-in { animation: scaleIn 0.4s ease-out forwards; }
+        
+        .view-transition-enter { animation: slideUp 0.5s ease-out; }
+
+        /* Loader */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #FFF;
+            border-bottom-color: #ff6100;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+        }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 <script type="importmap">
 {
