@@ -443,7 +443,7 @@ const SkinCard: React.FC<{ skin: Skin, delay: number }> = ({ skin, delay }) => {
               <i className="fas fa-map-marker-alt text-[#ff6100]/50 w-4"></i> {skin.route}
             </p>
             <p className="text-sm text-gray-500 flex items-center gap-2">
-              <i className="fas fa-palette text-[#ff6100]/50 w-4"></i> Designed By: <span className="text-[#ff6100]">{skin.author}</span>
+              <i className="fas fa-palette text-[#ff6100]/50 w-4"></i> Author: <span className="text-[#ff6100]">{skin.author}</span>
             </p>
           </div>
         </div>
@@ -470,8 +470,20 @@ const SkinCard: React.FC<{ skin: Skin, delay: number }> = ({ skin, delay }) => {
           </div>
         ) : (
           <div className="flex gap-3 pt-4 border-t border-white/5 animate-scale-in">
-            <a href={skin.paintUrl} className="flex-grow py-4 bg-[#ff6100] rounded-2xl font-bold text-sm text-center transition-all shadow-lg shadow-[#ff6100]/20 hover:scale-105 hover:bg-[#ff7a2b]">Paint</a>
-            <a href={skin.glassUrl} className="flex-grow py-4 glass border-white/10 hover:bg-[#ff6100]/10 hover:border-[#ff6100]/30 rounded-2xl font-bold text-sm text-center transition-all">Glass</a>
+            <a 
+              href={skin.paintUrl} 
+              download={`${skin.title}_paint.png`} 
+              className="flex-grow py-4 bg-[#ff6100] rounded-2xl font-bold text-sm text-center transition-all shadow-lg shadow-[#ff6100]/20 hover:scale-105 hover:bg-[#ff7a2b]"
+            >
+              Paint
+            </a>
+            <a 
+              href={skin.glassUrl} 
+              download={`${skin.title}_glass.png`} 
+              className="flex-grow py-4 glass border-white/10 hover:bg-[#ff6100]/10 hover:border-[#ff6100]/30 rounded-2xl font-bold text-sm text-center transition-all"
+            >
+              Glass
+            </a>
           </div>
         )}
       </div>
@@ -556,9 +568,10 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
     id: '', modelId: '', title: '', author: '', route: '', chassis: '', 
     imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
   });
+  const [editingSkinId, setEditingSkinId] = useState<string | null>(null);
+  const [editSkinData, setEditSkinData] = useState<Skin | null>(null);
+
   const [newStaff, setNewStaff] = useState<StaffMember>({ id: '', name: '', role: '', imageUrl: '', fbLink: '', type: 'master' });
-  
-  // Editing state
   const [editingStaffId, setEditingStaffId] = useState<string | null>(null);
   const [editStaffData, setEditStaffData] = useState<StaffMember | null>(null);
 
@@ -599,6 +612,18 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
       id: '', modelId: '', title: '', author: '', route: '', chassis: '', 
       imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
     });
+  };
+
+  const startEditingSkin = (skin: Skin) => {
+    setEditingSkinId(skin.id);
+    setEditSkinData({ ...skin });
+  };
+
+  const saveSkinEdit = () => {
+    if (!editSkinData || !editingSkinId) return;
+    setSkins(skins.map(s => s.id === editingSkinId ? editSkinData : s));
+    setEditingSkinId(null);
+    setEditSkinData(null);
   };
 
   const addStaff = () => {
@@ -689,7 +714,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
                       <div className="space-y-2">
                         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Update Image</label>
                         <div className="flex gap-4 items-center">
-                          <img src={editModelData?.imageUrl} className="w-12 h-12 object-cover rounded-lg border border-white/10" alt="Edit Preview" />
+                          <img src={editModelData?.imageUrl} className="w-12 h-12 rounded-xl object-cover border border-white/10" alt="Edit Preview" />
                           <input 
                             type="file" 
                             accept="image/*" 
@@ -726,7 +751,10 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8 glass border-white/5 rounded-[2.5rem]">
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 ml-4">Model</label>
-                <select className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all appearance-none" value={newSkin.modelId} onChange={e => setNewSkin({...newSkin, modelId: e.target.value})}>
+                <select className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all appearance-none" value={newSkin.modelId} onChange={e => {
+                  const m = busModels.find(x => x.id === e.target.value);
+                  setNewSkin({...newSkin, modelId: e.target.value, chassis: m?.name || ''});
+                }}>
                   <option value="">Select Model...</option>
                   {busModels.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </select>
@@ -745,26 +773,94 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 ml-4">Unlock Code</label>
-                <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="e.g. GL01" value={newSkin.captchaCode} onChange={e => setNewSkin({...newSkin, captchaCode: e.target.value})} />
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="e.g. GL01" value={newSkin.captchaCode} onChange={e => setNewSkin({...newSkin, captchaCode: e.target.value.toUpperCase()})} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 ml-4">Preview Image</label>
-                <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="URL" value={newSkin.imageUrl} onChange={e => setNewSkin({...newSkin, imageUrl: e.target.value})} />
+                <label className="text-xs font-bold text-gray-500 ml-4">Preview Image Upload</label>
+                <div className="relative">
+                  <input type="file" id="add-skin-preview" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (base64) => setNewSkin({ ...newSkin, imageUrl: base64 }))} />
+                  <label htmlFor="add-skin-preview" className="w-full glass bg-white/5 p-4 rounded-2xl border border-dashed border-white/20 flex items-center justify-between cursor-pointer hover:border-[#ff6100]/50 transition-all">
+                    <span className="text-sm text-gray-400">{newSkin.imageUrl ? 'Preview Ready' : 'Select Preview Image...'}</span>
+                    <i className="fas fa-image text-[#ff6100]"></i>
+                  </label>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Paint File Upload</label>
+                <div className="relative">
+                  <input type="file" id="add-skin-paint" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (base64) => setNewSkin({ ...newSkin, paintUrl: base64 }))} />
+                  <label htmlFor="add-skin-paint" className="w-full glass bg-white/5 p-4 rounded-2xl border border-dashed border-white/20 flex items-center justify-between cursor-pointer hover:border-[#ff6100]/50 transition-all">
+                    <span className="text-sm text-gray-400">{newSkin.paintUrl && newSkin.paintUrl !== '#' ? 'Paint Ready' : 'Select Paint File...'}</span>
+                    <i className="fas fa-palette text-[#ff6100]"></i>
+                  </label>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Glass File Upload</label>
+                <div className="relative">
+                  <input type="file" id="add-skin-glass" accept="image/*" className="hidden" onChange={(e) => handleFileUpload(e, (base64) => setNewSkin({ ...newSkin, glassUrl: base64 }))} />
+                  <label htmlFor="add-skin-glass" className="w-full glass bg-white/5 p-4 rounded-2xl border border-dashed border-white/20 flex items-center justify-between cursor-pointer hover:border-[#ff6100]/50 transition-all">
+                    <span className="text-sm text-gray-400">{newSkin.glassUrl && newSkin.glassUrl !== '#' ? 'Glass Ready' : 'Select Glass File...'}</span>
+                    <i className="fas fa-window-maximize text-[#ff6100]"></i>
+                  </label>
+                </div>
               </div>
               <button onClick={addSkin} className="lg:col-span-3 bg-[#ff6100] py-4 rounded-2xl font-bold uppercase tracking-widest text-sm shadow-xl mt-4 hover:bg-[#ff7a2b] active:scale-95 transition-all">Publish Skin</button>
             </div>
             
-            <div className="grid gap-4">
+            <div className="grid gap-6">
               {skins.map(s => (
-                <div key={s.id} className="flex items-center justify-between p-6 glass border-white/5 rounded-3xl group hover:bg-white/5 transition-all">
-                  <div className="flex items-center gap-6">
-                    <img src={s.imageUrl} className="w-16 h-10 object-cover rounded-lg group-hover:scale-110 transition-transform" onError={(e) => (e.currentTarget.src = 'https://placehold.co/100x60?text=Skin')} />
-                    <div>
-                      <p className="font-bold group-hover:text-[#ff6100] transition-colors">{s.title}</p>
-                      <p className="text-xs text-gray-500">{busModels.find(m => m.id === s.modelId)?.name || 'Unknown'}</p>
+                <div key={s.id} className="flex flex-col p-6 glass border-white/5 rounded-[2.5rem] group hover:bg-white/5 transition-all">
+                  {editingSkinId === s.id ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                       <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Skin Title</label>
+                        <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.title} onChange={e => setEditSkinData({...editSkinData!, title: e.target.value})} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Author</label>
+                        <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.author} onChange={e => setEditSkinData({...editSkinData!, author: e.target.value})} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Route</label>
+                        <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.route} onChange={e => setEditSkinData({...editSkinData!, route: e.target.value})} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Unlock Code</label>
+                        <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.captchaCode} onChange={e => setEditSkinData({...editSkinData!, captchaCode: e.target.value.toUpperCase()})} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Update Preview</label>
+                        <input type="file" className="w-full glass bg-white/10 p-2 rounded-xl text-[10px]" onChange={e => handleFileUpload(e, (base64) => setEditSkinData({...editSkinData!, imageUrl: base64}))} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Update Paint</label>
+                        <input type="file" className="w-full glass bg-white/10 p-2 rounded-xl text-[10px]" onChange={e => handleFileUpload(e, (base64) => setEditSkinData({...editSkinData!, paintUrl: base64}))} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Update Glass</label>
+                        <input type="file" className="w-full glass bg-white/10 p-2 rounded-xl text-[10px]" onChange={e => handleFileUpload(e, (base64) => setEditSkinData({...editSkinData!, glassUrl: base64}))} />
+                      </div>
+                      <div className="lg:col-span-3 flex gap-3 mt-4">
+                        <button onClick={saveSkinEdit} className="flex-grow py-3 bg-[#ff6100] rounded-xl font-bold text-xs uppercase tracking-widest">Save Changes</button>
+                        <button onClick={() => setEditingSkinId(null)} className="flex-grow py-3 glass rounded-xl font-bold text-xs uppercase tracking-widest">Cancel</button>
+                      </div>
                     </div>
-                  </div>
-                  <button onClick={() => setSkins(skins.filter(x => x.id !== s.id))} className="text-red-500/30 hover:text-red-500 transition-all hover:scale-125"><i className="fas fa-trash-alt"></i></button>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-6">
+                        <img src={s.imageUrl} className="w-20 h-14 object-cover rounded-xl group-hover:scale-110 transition-transform" onError={(e) => (e.currentTarget.src = 'https://placehold.co/100x60?text=Skin')} />
+                        <div>
+                          <p className="font-bold text-lg group-hover:text-[#ff6100] transition-colors">{s.title}</p>
+                          <p className="text-xs text-gray-500">{busModels.find(m => m.id === s.modelId)?.name || 'Unknown'} • {s.route}</p>
+                        </div>
+                      </div>
+                      <div className="flex gap-4">
+                        <button onClick={() => startEditingSkin(s)} className="text-gray-500 hover:text-[#ff6100] transition-all transform hover:scale-125"><i className="fas fa-edit"></i></button>
+                        <button onClick={() => setSkins(skins.filter(x => x.id !== s.id))} className="text-red-500/30 hover:text-red-500 transition-all hover:scale-125"><i className="fas fa-trash-alt"></i></button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -844,7 +940,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
           </div>
         )}
 
-        {activeTab === 'staff' && (
+        {activeTab === 'staff' && (activeTab === 'staff' && (
           <div className="space-y-12 animate-fade-in">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8 glass border-white/5 rounded-[2.5rem]">
               <div className="space-y-2">
@@ -943,7 +1039,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
               ))}
             </div>
           </div>
-        )}
+        ))}
 
         {activeTab === 'about' && (
           <div className="space-y-10 max-w-4xl animate-fade-in">
