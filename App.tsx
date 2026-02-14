@@ -940,7 +940,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
           </div>
         )}
 
-        {activeTab === 'staff' && (activeTab === 'staff' && (
+        {activeTab === 'staff' && (
           <div className="space-y-12 animate-fade-in">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-8 glass border-white/5 rounded-[2.5rem]">
               <div className="space-y-2">
@@ -1039,7 +1039,7 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
               ))}
             </div>
           </div>
-        ))}
+        )}
 
         {activeTab === 'about' && (
           <div className="space-y-10 max-w-4xl animate-fade-in">
