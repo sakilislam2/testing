@@ -178,6 +178,25 @@ const App: React.FC = () => {
     localStorage.setItem('bsbd_history', historyText);
   }, [marqueeText, busModels, skins, leaderboard, masterLeaderboard, trips, staff, historyText]);
 
+  // --- Deep Linking for Skins ---
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const skinId = params.get('skinId');
+    if (skinId) {
+      const skin = skins.find(s => s.id === skinId);
+      if (skin) {
+        const model = busModels.find(m => m.id === skin.modelId);
+        if (model) {
+          setSelectedModel(model);
+          setSelectedCategory(skin.category);
+          setView('skins');
+          // Clear params to avoid re-triggering on refresh if user navigates away
+          window.history.replaceState({}, document.title, window.location.pathname);
+        }
+      }
+    }
+  }, [skins, busModels]);
+
   // --- Visitor Count Logic ---
   useEffect(() => {
     const storedTotal = parseInt(localStorage.getItem('bsbd_visitor_total') || '309');
@@ -465,6 +484,7 @@ const SkinCard: React.FC<{ skin: Skin, delay: number, onDownload: () => void }> 
   const [verified, setVerified] = useState(skin.category !== 'Private');
   const [input, setInput] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
+  const [showShareToast, setShowShareToast] = useState(false);
 
   const handleVerify = () => {
     if (input === skin.captchaCode) {
@@ -478,12 +498,39 @@ const SkinCard: React.FC<{ skin: Skin, delay: number, onDownload: () => void }> 
     }
   };
 
+  const handleShare = () => {
+    const shareUrl = `${window.location.origin}${window.location.pathname}?skinId=${skin.id}`;
+    navigator.clipboard.writeText(shareUrl).then(() => {
+      setShowShareToast(true);
+      setTimeout(() => setShowShareToast(null), 2000);
+    }).catch(err => {
+      console.error('Failed to copy: ', err);
+      alert('Could not copy link to clipboard');
+    });
+  };
+
   return (
-    <div style={{ animationDelay: `${delay}ms` }} className="glass rounded-2xl lg:rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all duration-700 border border-white/5 animate-slide-up flex flex-col h-full">
+    <div style={{ animationDelay: `${delay}ms` }} className="glass rounded-2xl lg:rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all duration-700 border border-white/5 animate-slide-up flex flex-col h-full relative">
+      {showShareToast && (
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-[#ff6100] text-white px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl animate-fade-in">
+          Link Copied!
+        </div>
+      )}
       <div className="h-48 lg:h-64 overflow-hidden relative">
         <img src={skin.imageUrl} alt={skin.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
         <div className="absolute top-4 left-4 lg:top-6 lg:left-6 bg-[#ff6100] text-white px-3 py-1 lg:px-5 lg:py-2 rounded-xl lg:rounded-2xl text-[8px] lg:text-[10px] font-black uppercase tracking-widest shadow-xl transform group-hover:scale-110 transition-transform">{skin.model}</div>
-        <div className="absolute top-4 right-4 lg:top-6 lg:right-6 bg-black/60 backdrop-blur-md text-white px-3 py-1 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl text-[8px] lg:text-[10px] font-bold uppercase tracking-widest border border-white/10">{skin.category}</div>
+        <div className="absolute top-4 right-4 lg:top-6 lg:right-6 flex gap-2">
+          {skin.category !== 'Private' && (
+            <button 
+              onClick={handleShare}
+              className="bg-white/10 backdrop-blur-md text-white w-8 h-8 lg:w-10 lg:h-10 rounded-lg lg:rounded-xl flex items-center justify-center hover:bg-[#ff6100] transition-colors border border-white/10"
+              title="Share Skin"
+            >
+              <i className="fas fa-share-alt text-[10px] lg:text-xs"></i>
+            </button>
+          )}
+          <div className="bg-black/60 backdrop-blur-md text-white px-3 py-1 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl text-[8px] lg:text-[10px] font-bold uppercase tracking-widest border border-white/10 flex items-center">{skin.category}</div>
+        </div>
       </div>
       <div className="p-6 lg:p-10 space-y-4 lg:space-y-6 flex-grow flex flex-col">
         <div className="space-y-3 lg:space-y-4 flex-grow">
