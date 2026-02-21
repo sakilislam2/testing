@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 
 // --- Types ---
 type View = 'home' | 'about' | 'skins' | 'leaderboard' | 'tournament' | 'trip' | 'admin';
+type SkinCategory = 'FREE' | 'Private' | 'Special';
 
 interface BusModel {
   id: string;
@@ -15,12 +16,17 @@ interface Skin {
   modelId: string;
   title: string;
   author: string;
+  authorLink?: string;
   route: string;
   model: string;
   imageUrl: string;
   captchaCode: string;
   paintUrl: string;
   glassUrl: string;
+  category: SkinCategory;
+  chassis: string;
+  downloadCount: number;
+  publishDate: string;
 }
 
 interface LeaderboardEntry {
@@ -66,15 +72,17 @@ const DEFAULT_MODELS: BusModel[] = [
 const DEFAULT_SKINS: Skin[] = [
   { 
     id: 's1', modelId: 'm1', title: 'Himalay Express', 
-    author: 'Md Rashel Babu Sr.', route: 'Dhaka - Laksham', model: 'Kiwi 1JOG',
+    author: 'Md Rashel Babu Sr.', authorLink: 'https://facebook.com', route: 'Dhaka - Laksham', model: 'Kiwi 1JOG',
     imageUrl: 'https://placehold.co/600x400/1e293b/white?text=Himalay+Express', 
-    captchaCode: 'OG1', paintUrl: '#', glassUrl: '#' 
+    captchaCode: 'OG1', paintUrl: '#', glassUrl: '#',
+    category: 'FREE', chassis: 'Mercedes Benz OF 1623', downloadCount: 124, publishDate: '2024-01-15'
   },
   { 
     id: 's2', modelId: 'm2', title: 'Bangla Star', 
-    author: 'Sakil Islam', route: 'Pabna - Chattogram', model: 'Apple Univ',
+    author: 'Sakil Islam', authorLink: 'https://facebook.com', route: 'Pabna - Chattogram', model: 'Apple Univ',
     imageUrl: 'https://placehold.co/600x400/1e293b/white?text=Bangla+Star', 
-    captchaCode: 'UNIV01', paintUrl: '#', glassUrl: '#' 
+    captchaCode: 'UNIV01', paintUrl: '#', glassUrl: '#',
+    category: 'Private', chassis: 'Hino AK1J', downloadCount: 89, publishDate: '2024-02-10'
   },
 ];
 
@@ -146,6 +154,7 @@ const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showLogin, setShowLogin] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState<SkinCategory>('FREE');
 
   // --- Dynamic State ---
   const [marqueeText, setMarqueeText] = useState(localStorage.getItem('bsbd_marquee') || 'এই ওয়েবসাইটের কোনো লেখা, ছবি কিংবা স্কিন বিনা অনুমতিতে ব্যবহার করা নিষেধ। #BSBDOMG Official Group');
@@ -217,9 +226,22 @@ const App: React.FC = () => {
     switch(view) {
       case 'skins': 
         return selectedModel ? (
-          <SkinGalleryView model={selectedModel} skins={skins} onBack={() => setSelectedModel(null)} />
+          <SkinGalleryView 
+            model={selectedModel} 
+            skins={skins} 
+            category={selectedCategory}
+            onBack={() => setSelectedModel(null)} 
+            onDownload={(skinId) => {
+              setSkins(prev => prev.map(s => s.id === skinId ? { ...s, downloadCount: s.downloadCount + 1 } : s));
+            }}
+          />
         ) : (
-          <BusModelSelection models={busModels} onSelect={setSelectedModel} />
+          <BusModelSelection 
+            models={busModels} 
+            onSelect={setSelectedModel} 
+            selectedCategory={selectedCategory}
+            setSelectedCategory={setSelectedCategory}
+          />
         );
       case 'leaderboard': return <LeaderboardSection data={leaderboard} masterData={masterLeaderboard} />;
       case 'trip': return <TripRulesSection schedules={trips} />;
@@ -279,20 +301,6 @@ const App: React.FC = () => {
               ))}
             </ul>
           </div>
-          
-          <div className="mt-8 lg:mt-0">
-            <button 
-              onClick={() => {
-                if(isLoggedIn) setView('admin');
-                else setShowLogin(true);
-                setSidebarOpen(false);
-              }}
-              className={`w-full lg:w-auto flex items-center gap-4 px-6 py-3.5 lg:py-3 rounded-2xl transition-all duration-300 border transform ${view === 'admin' || showLogin ? 'bg-[#ff6100] border-[#ff7a2b] text-white shadow-xl scale-105' : 'border-white/5 text-gray-500 hover:text-[#ff6100] hover:border-[#ff6100]/30 hover:bg-[#ff6100]/5 hover:scale-105 active:scale-95'}`}
-            >
-              <i className="fas fa-user-shield text-sm"></i>
-              <span className="font-semibold text-sm whitespace-nowrap">Admin Control</span>
-            </button>
-          </div>
         </div>
       </nav>
 
@@ -318,24 +326,55 @@ const App: React.FC = () => {
           </div>
         </div>
 
-        <Footer visitorCount={visitorCount} />
+        <Footer 
+          visitorCount={visitorCount} 
+          isLoggedIn={isLoggedIn}
+          view={view}
+          showLogin={showLogin}
+          onAdminClick={() => {
+            if(isLoggedIn) setView('admin');
+            else setShowLogin(true);
+            setSidebarOpen(false);
+          }}
+        />
       </main>
     </div>
   );
 };
 
 // --- View: Bus Model Selection ---
-const BusModelSelection: React.FC<{ models: BusModel[], onSelect: (m: BusModel) => void }> = ({ models, onSelect }) => {
+const BusModelSelection: React.FC<{ 
+  models: BusModel[], 
+  onSelect: (m: BusModel) => void,
+  selectedCategory: SkinCategory,
+  setSelectedCategory: (c: SkinCategory) => void
+}> = ({ models, onSelect, selectedCategory, setSelectedCategory }) => {
   const [search, setSearch] = useState('');
   const filtered = models.filter(m => m.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
     <div className="space-y-12 animate-slide-up">
       <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
-        <div className="space-y-2">
-          <h2 className="text-5xl font-black uppercase tracking-tighter">Bus Models</h2>
-          <p className="text-gray-500 font-medium">Select a model to browse available skins</p>
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <h2 className="text-5xl font-black uppercase tracking-tighter">Bus Skins</h2>
+            <p className="text-gray-500 font-medium">বাস মডেল অনুযায়ী স্কিন গ্যালারি</p>
+          </div>
+          
+          <div className="relative w-full lg:w-64">
+            <select 
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value as SkinCategory)}
+              className="w-full appearance-none bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#ff6100] transition-all cursor-pointer"
+            >
+              <option value="FREE">FREE Skins</option>
+              <option value="Private">Private Skins</option>
+              <option value="Special">Special Skins</option>
+            </select>
+            <i className="fas fa-chevron-down absolute right-6 top-1/2 -translate-y-1/2 text-[#ff6100] pointer-events-none"></i>
+          </div>
         </div>
+
         <div className="relative group w-full lg:w-96">
           <i className="fas fa-search absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[#ff6100] transition-colors"></i>
           <input 
@@ -372,9 +411,19 @@ const BusModelSelection: React.FC<{ models: BusModel[], onSelect: (m: BusModel) 
 };
 
 // --- View: Skin Gallery for Model ---
-const SkinGalleryView: React.FC<{ model: BusModel, skins: Skin[], onBack: () => void }> = ({ model, skins, onBack }) => {
+const SkinGalleryView: React.FC<{ 
+  model: BusModel, 
+  skins: Skin[], 
+  category: SkinCategory,
+  onBack: () => void,
+  onDownload: (id: string) => void
+}> = ({ model, skins, category, onBack, onDownload }) => {
   const [search, setSearch] = useState('');
-  const filtered = skins.filter(s => s.modelId === model.id && s.title.toLowerCase().includes(search.toLowerCase()));
+  const filtered = skins.filter(s => 
+    s.modelId === model.id && 
+    s.category === category &&
+    s.title.toLowerCase().includes(search.toLowerCase())
+  );
 
   return (
     <div className="space-y-12 animate-fade-in">
@@ -384,7 +433,7 @@ const SkinGalleryView: React.FC<{ model: BusModel, skins: Skin[], onBack: () => 
             <i className="fas fa-arrow-left transition-transform group-hover:-translate-x-1"></i> Back to Models
           </button>
           <div className="space-y-1">
-            <h2 className="text-5xl font-black uppercase tracking-tighter">{model.name} <span className="text-[#ff6100]">Skins</span></h2>
+            <h2 className="text-5xl font-black uppercase tracking-tighter">{model.name} <span className="text-[#ff6100]">{category} Skins</span></h2>
             <p className="text-gray-500 font-medium">Browse high-quality liveries for this model</p>
           </div>
         </div>
@@ -400,20 +449,20 @@ const SkinGalleryView: React.FC<{ model: BusModel, skins: Skin[], onBack: () => 
 
       {filtered.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-10">
-          {filtered.map((skin, idx) => <SkinCard key={skin.id} skin={skin} delay={idx * 100} />)}
+          {filtered.map((skin, idx) => <SkinCard key={skin.id} skin={skin} delay={idx * 100} onDownload={() => onDownload(skin.id)} />)}
         </div>
       ) : (
         <div className="py-32 text-center glass rounded-[3rem] border border-white/5 border-dashed animate-scale-in">
           <i className="fas fa-images text-4xl text-gray-600 mb-4 block"></i>
-          <p className="text-gray-500 font-bold">No skins available for this model yet</p>
+          <p className="text-gray-500 font-bold">No {category} skins available for this model yet</p>
         </div>
       )}
     </div>
   );
 };
 
-const SkinCard: React.FC<{ skin: Skin, delay: number }> = ({ skin, delay }) => {
-  const [verified, setVerified] = useState(false);
+const SkinCard: React.FC<{ skin: Skin, delay: number, onDownload: () => void }> = ({ skin, delay, onDownload }) => {
+  const [verified, setVerified] = useState(skin.category !== 'Private');
   const [input, setInput] = useState('');
   const [isAnimating, setIsAnimating] = useState(false);
 
@@ -430,29 +479,49 @@ const SkinCard: React.FC<{ skin: Skin, delay: number }> = ({ skin, delay }) => {
   };
 
   return (
-    <div style={{ animationDelay: `${delay}ms` }} className="glass rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all duration-700 border border-white/5 animate-slide-up">
+    <div style={{ animationDelay: `${delay}ms` }} className="glass rounded-[3rem] overflow-hidden group hover:shadow-2xl transition-all duration-700 border border-white/5 animate-slide-up flex flex-col h-full">
       <div className="h-64 overflow-hidden relative">
         <img src={skin.imageUrl} alt={skin.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
         <div className="absolute top-6 left-6 bg-[#ff6100] text-white px-5 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest shadow-xl transform group-hover:scale-110 transition-transform">{skin.model}</div>
+        <div className="absolute top-6 right-6 bg-black/60 backdrop-blur-md text-white px-4 py-2 rounded-xl text-[10px] font-bold uppercase tracking-widest border border-white/10">{skin.category}</div>
       </div>
-      <div className="p-10 space-y-6">
-        <div className="space-y-2">
-          <h3 className="text-2xl font-bold transition-colors group-hover:text-[#ff6100]">{skin.title}</h3>
-          <div className="space-y-1">
-            <p className="text-sm text-gray-500 flex items-center gap-2">
+      <div className="p-10 space-y-6 flex-grow flex flex-col">
+        <div className="space-y-4 flex-grow">
+          <div className="flex justify-between items-start">
+            <h3 className="text-2xl font-bold transition-colors group-hover:text-[#ff6100]">{skin.title}</h3>
+            <span className="text-[10px] text-gray-600 font-bold uppercase tracking-widest mt-2">{skin.publishDate}</span>
+          </div>
+          
+          <div className="grid grid-cols-1 gap-3">
+            <p className="text-sm text-gray-500 flex items-center gap-3">
               <i className="fas fa-map-marker-alt text-[#ff6100]/50 w-4"></i> {skin.route}
             </p>
-            <p className="text-sm text-gray-500 flex items-center gap-2">
-              <i className="fas fa-palette text-[#ff6100]/50 w-4"></i> Author: <span className="text-[#ff6100]">{skin.author}</span>
+            <p className="text-sm text-gray-500 flex items-center gap-3">
+              <i className="fas fa-truck-monster text-[#ff6100]/50 w-4"></i> {skin.chassis}
             </p>
+            <p className="text-sm text-gray-500 flex items-center gap-3">
+              <i className="fas fa-palette text-[#ff6100]/50 w-4"></i> Author: 
+              {skin.authorLink ? (
+                <a href={skin.authorLink} target="_blank" rel="noreferrer" className="text-[#ff6100] hover:underline font-bold">{skin.author}</a>
+              ) : (
+                <span className="text-[#ff6100] font-bold">{skin.author}</span>
+              )}
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3 pt-2">
+            <div className="px-4 py-2 bg-white/5 rounded-xl border border-white/5 flex items-center gap-2">
+              <i className="fas fa-download text-[10px] text-[#ff6100]"></i>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{skin.downloadCount} Downloads</span>
+            </div>
           </div>
         </div>
         
         {!verified ? (
-          <div className={`space-y-4 pt-4 border-t border-white/5 transition-opacity duration-300 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
+          <div className={`space-y-4 pt-6 border-t border-white/5 transition-opacity duration-300 ${isAnimating ? 'opacity-0 scale-95' : 'opacity-100 scale-100'}`}>
             <div className="flex items-center justify-between">
-              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Authentication</span>
-              <span className="text-[#ff6100] bg-[#ff6100]/10 px-3 py-1 rounded-lg text-[10px] font-bold">Hint: {skin.captchaCode}</span>
+              <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Authentication Required</span>
+              <span className="text-[#ff6100] bg-[#ff6100]/10 px-3 py-1 rounded-lg text-[10px] font-bold">Private Access</span>
             </div>
             <div className="flex gap-3">
               <input 
@@ -469,21 +538,25 @@ const SkinCard: React.FC<{ skin: Skin, delay: number }> = ({ skin, delay }) => {
             </div>
           </div>
         ) : (
-          <div className="flex gap-3 pt-4 border-t border-white/5 animate-scale-in">
-            <a 
-              href={skin.paintUrl} 
-              download={`${skin.title}_paint.png`} 
-              className="flex-grow py-4 bg-[#ff6100] rounded-2xl font-bold text-sm text-center transition-all shadow-lg shadow-[#ff6100]/20 hover:scale-105 hover:bg-[#ff7a2b]"
-            >
-              Paint
-            </a>
-            <a 
-              href={skin.glassUrl} 
-              download={`${skin.title}_glass.png`} 
-              className="flex-grow py-4 glass border-white/10 hover:bg-[#ff6100]/10 hover:border-[#ff6100]/30 rounded-2xl font-bold text-sm text-center transition-all"
-            >
-              Glass
-            </a>
+          <div className="flex flex-col gap-3 pt-6 border-t border-white/5 animate-scale-in">
+            <div className="grid grid-cols-2 gap-3">
+              <a 
+                href={skin.paintUrl} 
+                onClick={onDownload}
+                download={`${skin.title}_paint.png`} 
+                className="py-4 bg-[#ff6100] text-white rounded-2xl font-bold text-sm text-center transition-all shadow-lg shadow-[#ff6100]/20 hover:scale-105 hover:bg-[#ff7a2b] flex items-center justify-center gap-2"
+              >
+                <i className="fas fa-paint-brush"></i> Download Paint
+              </a>
+              <a 
+                href={skin.glassUrl} 
+                onClick={onDownload}
+                download={`${skin.title}_glass.png`} 
+                className="py-4 glass border-white/10 hover:bg-[#ff6100]/10 hover:border-[#ff6100]/30 rounded-2xl font-bold text-sm text-center transition-all flex items-center justify-center gap-2"
+              >
+                <i className="fas fa-window-maximize"></i> Download Glass
+              </a>
+            </div>
           </div>
         )}
       </div>
@@ -492,7 +565,13 @@ const SkinCard: React.FC<{ skin: Skin, delay: number }> = ({ skin, delay }) => {
 };
 
 // --- Footer Component ---
-const Footer: React.FC<{ visitorCount: number }> = ({ visitorCount }) => (
+const Footer: React.FC<{ 
+  visitorCount: number;
+  isLoggedIn: boolean;
+  view: View;
+  showLogin: boolean;
+  onAdminClick: () => void;
+}> = ({ visitorCount, isLoggedIn, view, showLogin, onAdminClick }) => (
   <footer className="mt-auto px-6 lg:px-12 pb-12 pt-16 w-full max-w-7xl mx-auto animate-fade-in">
     <div className="glass rounded-[2.5rem] p-10 lg:p-14 border border-white/5 relative overflow-hidden group">
       <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-[#ff6100]/50 to-transparent transition-opacity group-hover:opacity-100"></div>
@@ -534,6 +613,15 @@ const Footer: React.FC<{ visitorCount: number }> = ({ visitorCount }) => (
               <div className="w-2 h-2 rounded-full bg-[#ff6100] animate-pulse"></div>
               <span className="text-xs font-semibold text-gray-300">Live Viewers: {visitorCount.toLocaleString()}</span>
             </div>
+            
+            <button 
+              onClick={onAdminClick}
+              className={`w-full flex items-center justify-center gap-4 px-6 py-3.5 rounded-2xl transition-all duration-300 border transform ${view === 'admin' || showLogin ? 'bg-[#ff6100] border-[#ff7a2b] text-white shadow-xl scale-105' : 'border-white/5 text-gray-500 hover:text-[#ff6100] hover:border-[#ff6100]/30 hover:bg-[#ff6100]/5 hover:scale-105 active:scale-95'}`}
+            >
+              <i className="fas fa-user-shield text-sm"></i>
+              <span className="font-semibold text-sm whitespace-nowrap">Admin Control</span>
+            </button>
+
             <p className="text-[10px] text-gray-600 uppercase tracking-widest pl-2">© 2025 BSBDOMG Official • All Rights Reserved</p>
           </div>
         </div>
@@ -565,8 +653,9 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
   const [editModelData, setEditModelData] = useState<BusModel | null>(null);
 
   const [newSkin, setNewSkin] = useState<Skin>({ 
-    id: '', modelId: '', title: '', author: '', route: '', model: '', 
-    imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
+    id: '', modelId: '', title: '', author: '', authorLink: '', route: '', model: '', 
+    imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '',
+    category: 'FREE', chassis: '', downloadCount: 0, publishDate: new Date().toISOString().split('T')[0]
   });
   const [editingSkinId, setEditingSkinId] = useState<string | null>(null);
   const [editSkinData, setEditSkinData] = useState<Skin | null>(null);
@@ -609,8 +698,9 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
     if(!newSkin.title || !newSkin.modelId) return;
     setSkins([...skins, { ...newSkin, id: 's' + Date.now() }]);
     setNewSkin({ 
-      id: '', modelId: '', title: '', author: '', route: '', model: '', 
-      imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '' 
+      id: '', modelId: '', title: '', author: '', authorLink: '', route: '', model: '', 
+      imageUrl: '', captchaCode: '', paintUrl: '', glassUrl: '',
+      category: 'FREE', chassis: '', downloadCount: 0, publishDate: new Date().toISOString().split('T')[0]
     });
   };
 
@@ -760,20 +850,40 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
                 </select>
               </div>
               <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Category</label>
+                <select className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all appearance-none" value={newSkin.category} onChange={e => setNewSkin({...newSkin, category: e.target.value as SkinCategory})}>
+                  <option value="FREE">FREE</option>
+                  <option value="Private">Private</option>
+                  <option value="Special">Special</option>
+                </select>
+              </div>
+              <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 ml-4">Skin Title</label>
                 <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="e.g. Green Line" value={newSkin.title} onChange={e => setNewSkin({...newSkin, title: e.target.value})} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 ml-4">Author</label>
-                <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="e.g. Admin" value={newSkin.author} onChange={e => setNewSkin({...newSkin, author: e.target.value})} />
+                <label className="text-xs font-bold text-gray-500 ml-4">Author Name</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="e.g. Sakil Islam" value={newSkin.author} onChange={e => setNewSkin({...newSkin, author: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Author Profile Link</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="https://facebook.com/..." value={newSkin.authorLink} onChange={e => setNewSkin({...newSkin, authorLink: e.target.value})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Chassis</label>
+                <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="e.g. Mercedes Benz OF 1623" value={newSkin.chassis} onChange={e => setNewSkin({...newSkin, chassis: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 ml-4">Route</label>
                 <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="e.g. Dhaka-Sylhet" value={newSkin.route} onChange={e => setNewSkin({...newSkin, route: e.target.value})} />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-bold text-gray-500 ml-4">Unlock Code</label>
+                <label className="text-xs font-bold text-gray-500 ml-4">Unlock Code (for Private)</label>
                 <input className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" placeholder="e.g. GL01" value={newSkin.captchaCode} onChange={e => setNewSkin({...newSkin, captchaCode: e.target.value.toUpperCase()})} />
+              </div>
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-500 ml-4">Publish Date</label>
+                <input type="date" className="w-full glass bg-white/5 p-4 rounded-2xl focus:ring-2 focus:ring-[#ff6100] outline-none transition-all" value={newSkin.publishDate} onChange={e => setNewSkin({...newSkin, publishDate: e.target.value})} />
               </div>
               <div className="space-y-2">
                 <label className="text-xs font-bold text-gray-500 ml-4">Preview Image Upload</label>
@@ -813,13 +923,29 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
                 <div key={s.id} className="flex flex-col p-6 glass border-white/5 rounded-[2.5rem] group hover:bg-white/5 transition-all">
                   {editingSkinId === s.id ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Category</label>
+                        <select className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.category} onChange={e => setEditSkinData({...editSkinData!, category: e.target.value as SkinCategory})}>
+                          <option value="FREE">FREE</option>
+                          <option value="Private">Private</option>
+                          <option value="Special">Special</option>
+                        </select>
+                      </div>
                        <div className="space-y-1">
                         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Skin Title</label>
                         <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.title} onChange={e => setEditSkinData({...editSkinData!, title: e.target.value})} />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Author</label>
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Author Name</label>
                         <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.author} onChange={e => setEditSkinData({...editSkinData!, author: e.target.value})} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Author Link</label>
+                        <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.authorLink} onChange={e => setEditSkinData({...editSkinData!, authorLink: e.target.value})} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Chassis</label>
+                        <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.chassis} onChange={e => setEditSkinData({...editSkinData!, chassis: e.target.value})} />
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Route</label>
@@ -828,6 +954,10 @@ const AdminDashboard: React.FC<AdminProps> = ({ busModels, setBusModels, skins, 
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Unlock Code</label>
                         <input className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.captchaCode} onChange={e => setEditSkinData({...editSkinData!, captchaCode: e.target.value.toUpperCase()})} />
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Publish Date</label>
+                        <input type="date" className="w-full glass bg-white/10 p-3 rounded-xl text-sm outline-none focus:ring-1 focus:ring-[#ff6100]" value={editSkinData?.publishDate} onChange={e => setEditSkinData({...editSkinData!, publishDate: e.target.value})} />
                       </div>
                       <div className="space-y-1">
                         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-1">Update Preview</label>
